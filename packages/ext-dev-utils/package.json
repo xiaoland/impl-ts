@@ -17,15 +17,15 @@
     "@inkcre/ui-web": "2.5.0"
   },
   "devDependencies": {
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "typescript": "catalog:",
-    "vue": "^3.5.25",
-    "vue-router": "^4.5.1",
+    "vue": "^3.5.44",
+    "vue-router": "^4.6.4",
     "vue-tsc": "catalog:"
   },
   "peerDependencies": {
     "pinia": "^3.0.0",
-    "vue": "^3.5.25",
+    "vue": "^3.5.44",
     "vue-router": "^4.5.0"
   },
   "intent": {
