@@ -18,7 +18,9 @@
     "retry": "Retry",
     "visual": "Form",
     "json": "JSON",
-    "fixJsonBeforeForm": "Fix the JSON before switching to the form."
+    "fixJsonBeforeForm": "Fix the JSON before switching to the form.",
+    "databaseError": "Database connection error. Please try again.",
+    "networkError": "Network connection error. Please check your internet connection."
   },
   "startup": {
     "loading": "Starting InKCre…",
@@ -33,13 +35,14 @@
   "navigation": {
     "source": "Source",
     "job": "Job",
-    "block": "Block",
+    "block": "Entry",
     "relation": "Relation",
     "content": "Content",
     "graph": "Graph"
   },
   "recall": {
     "title": "Recall information",
+    "openShortcut": "Recall information (⌘K)",
     "mode": "Search mode",
     "recall": "Recall",
     "findPath": "Find path",
@@ -48,18 +51,24 @@
     "chooseDestination": "Choose the destination Block."
   },
   "sidePanel": {
-    "managing": "Managing",
+    "home": "Home",
+    "explore": "Explore",
     "sources": "Sources",
     "extensions": "Extensions",
-    "peers": "Peers",
+    "peers": "Devices",
     "settings": "Settings",
-    "explore": "Explore",
+    "menu": "Navigation menu",
+    "managing": "Managing",
     "infoBase": "Info Base"
+  },
+  "toast": {
+    "regionLabel": "Notifications"
   },
   "settings": {
     "backup": "Backup and restore",
     "importSuccess": "Configuration restored.",
     "title": "Settings",
+    "lead": "Manage your InKCre connection, runtime, and backup.",
     "metaConfig": "Connection and runtime settings",
     "pgrestUrl": "PostgREST URL",
     "jwtSecret": "JWT signing secret",
@@ -71,20 +80,23 @@
     "resetConfirmMessage": "Are you sure you want to reset all settings to default? This action cannot be undone.",
     "exportConfig": "Export",
     "importConfig": "Import",
-    "importError": "Unable to restore configuration. Check the file and deployment connection.",
-    "peerReadinessTimeout": "Peer readiness wait timeout (seconds)",
+    "importError": "Unable to restore configuration. Check the file and your connection.",
+    "peerReadinessTimeout": "Device readiness wait timeout (seconds)",
     "peerReadinessTimeoutInvalid": "Enter a whole number between 1 and 300 seconds.",
     "telemetryEnabled": "Enable telemetry",
-    "telemetryRelay": "Trusted Peer relay URL (optional)",
+    "telemetryRelay": "Trusted relay URL (optional)",
     "peerLeaseRenewInterval": "Lease renewal and job check interval (seconds; 0 disables)",
     "peerLeaseRenewIntervalInvalid": "Enter a whole number from 0 to 86400.",
-    "deploymentConnection": "Deployment connection",
-    "peerRuntime": "Peer runtime",
+    "deploymentConnection": "Connection",
+    "peerRuntime": "Local background",
     "telemetry": "Telemetry",
     "telemetryRelayDefault": "Leave empty to use deployment telemetry endpoints.",
     "backgroundDisabledEffect": "Saving stops background tasks and telemetry; local extensions remain available."
   },
   "source": {
+    "lead": "Manage the places your InKCre collects from; each source is an ongoing channel of new content.",
+    "createSuccess": "Source created.",
+    "deleteSuccess": "Source deleted.",
     "deleteConfirmTitle": "Delete Source",
     "deleteConfirmMessage": "Are you sure you want to delete this source? This action cannot be undone.",
     "detailTitle": "Source Details",
@@ -121,6 +133,8 @@
     "runFailed": "Unable to confirm task creation. Check the task list before trying again.",
     "detailFailed": "Unable to load this source. It may have been deleted or access is unavailable.",
     "discardChanges": "Discard unsaved changes and leave?",
+    "discardChangesTitle": "Discard changes",
+    "discardChangesConfirm": "Discard changes",
     "saved": "Changes saved.",
     "deleteFailed": "Unable to delete. The item is still shown until deletion is confirmed.",
     "createFailed": "Unable to confirm creation. Check the source list before trying again.",
@@ -140,13 +154,37 @@
     "typesLoading": "Loading source types…",
     "typesFailed": "Unable to load source types. Configuration cannot be saved until its schema is available.",
     "typeUnavailable": "This source type is unavailable. Check installed extensions or choose an available type.",
-    "backToSources": "Back to Sources"
+    "backToSources": "Back to Sources",
+    "tab": {
+      "overview": "Overview",
+      "config": "Config",
+      "schedules": "Schedules",
+      "jobs": "Jobs"
+    },
+    "info": "Basic Info",
+    "lastRun": "Last Run",
+    "nextRun": "Next Run",
+    "lastRunAt": "Ran At",
+    "cronHuman": {
+      "everyMinute": "Every minute",
+      "everyHour": "Every hour",
+      "everyDay": "Every day",
+      "everyWeek": "Every week",
+      "everyMonth": "Every month",
+      "custom": "Custom"
+    },
+    "created": "Created",
+    "updated": "Updated",
+    "view": "View"
   },
   "extension": {
+    "lead": "Add new source types and interface capabilities to your InKCre.",
+    "installSuccess": "Extension installed.",
+    "uninstallSuccess": "Extension uninstalled.",
     "versionAndRemoval": "Version and removal",
     "versionsLoading": "Loading versions…",
     "documentationMissing": "No documentation published for this release.",
-    "desiredStateExplanation": "The selected Peers will apply this change when they next sync.",
+    "desiredStateExplanation": "Takes effect on the next sync.",
     "title": "Extensions",
     "installed": "Installed",
     "browseRegistry": "Browse Registry",
@@ -163,7 +201,7 @@
     "connectBeforeInstall": "Connect your deployment in",
     "connectDeployment": "Connect your deployment",
     "connectDeploymentDescription": "Add its connection in Settings to manage Extensions here.",
-    "installScope": "After installing, enable the Extension on a Peer.",
+    "installScope": "After installing, enable the Extension on a specific device.",
     "hostCore": "Core",
     "hostWeb": "Web",
     "install": "Install",
@@ -184,9 +222,10 @@
     "enableSelected": "Enable",
     "disableSelected": "Disable",
     "currentBrowser": "This browser",
-    "desiredStateBrief": "Waiting for Peer sync",
-    "peerListUnavailable": "The Peer list could not be loaded: {error}",
+    "desiredStateBrief": "Takes effect on next sync",
+    "peerListUnavailable": "Unable to load the device list: {error}",
     "installedUnavailable": "Unable to load installed Extensions",
+    "errorDescription": "Failed to load the extension list. You can retry or view technical details.",
     "noneInstalled": "No Extensions installed",
     "noneInstalledDescription": "Browse the Registry to add an Extension.",
     "enabledPeerCount": "Enabled on {count} Peer(s).",
@@ -220,7 +259,13 @@
     "sourceLoadFailed": "Unable to load the source.",
     "title": "Job Details",
     "jobId": "Job ID",
-    "status": "Status",
+    "status": {
+      "pending": "Pending",
+      "running": "Running",
+      "success": "Success",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
     "source": "Source",
     "createdAt": "Created At",
     "startedAt": "Started At",
@@ -244,24 +289,28 @@
     "empty": "No logs"
   },
   "peer": {
-    "title": "Peers",
+    "title": "Devices",
+    "lead": "Each device or browser registered with your InKCre.",
+    "saveSuccess": "Device saved.",
     "refresh": "Refresh",
     "name": "Name",
     "id": "ID",
     "current": "This browser",
     "versionUnknown": "Version unknown",
-    "capabilities": "{count} capabilities",
+    "capabilities": "Capabilities",
     "statusOnline": "Online",
     "statusOffline": "Offline",
     "statusUnknown": "Unknown",
-    "empty": "No Peers registered",
-    "listFailed": "Unable to load Peers",
+    "empty": "No devices registered",
+    "listFailed": "Unable to load devices",
+    "errorDescription": "Failed to load the device list. You can retry or view technical details.",
     "editConfig": "Edit Config",
-    "delete": "Delete Peer",
-    "deleteConfirm": "This removes the Peer and its extension enablement from this deployment. A running Peer may register again when it reconnects.",
-    "deleteOnline": "Stop this Peer and wait for it to go offline before deleting it.",
-    "deleteFailed": "Unable to delete this Peer. Please try again.",
-    "readiness": "Runtime readiness",
+    "delete": "Delete device",
+    "deleteConfirm": "This removes the device and its extension enablement from your InKCre. A running device may register again when it reconnects.",
+    "deleteOnline": "Stop this device and wait for it to go offline before deleting it.",
+    "deleteFailed": "Unable to delete this device. Please try again.",
+    "deleteSuccess": "Device deleted.",
+    "readiness": "Readiness",
     "phase": "Phase",
     "reason": "Reason",
     "step": "Bootstrap step",
@@ -276,76 +325,126 @@
       "transport_error": "Readiness could not be reached. Refresh to check again.",
       "http_error": "Readiness returned an unexpected HTTP status.",
       "invalid_response": "Readiness returned an unsupported response."
-    }
+    },
+    "readinessIssues": "Device has readiness issues. Check details.",
+    "deviceInfo": "Device Info",
+    "deviceId": "Device ID",
+    "capabilitiesCount": "{count} items",
+    "capabilitiesList": "Capabilities List",
+    "showDetails": "Show Details",
+    "hideDetails": "Hide Details",
+    "viewRaw": "View Raw JSON",
+    "viewFormatted": "View Formatted",
+    "status": "Status"
   },
   "infoBase": {
-    "relationLoadFailed": "Unable to load this Relation.",
+    "relationLoadFailed": "Unable to load this relation.",
+    "view": {
+      "label": "Info Base view",
+      "list": "List",
+      "graph": "Graph"
+    },
     "list": {
       "help": "Search help",
-      "title": "Find the information you remember.",
+      "title": "Search your information",
       "searchLabel": "Search the info base",
       "searchPlaceholder": "A phrase, name, filename, or remembered detail…",
       "search": "Search",
       "idle": "Search exact phrases, continuous fragments, labels, and terms across the info base.",
-      "empty": "No indexed blocks matched “{query}”.",
+      "empty": "Nothing matches “{query}”.",
       "error": "The search could not be completed.",
       "retry": "Try again",
       "evidence": {
-        "label_exact": "Exact label",
-        "label_substring": "Label fragment",
-        "text_substring": "Text fragment",
-        "terms": "Matching terms"
+        "label_exact": "Matched a label",
+        "label_substring": "Matched part of a label",
+        "text_substring": "Matched the body",
+        "terms": "Matched keywords"
       },
-      "unavailable": "No retrieval Peer is available right now. Your query is preserved. Wait for a Peer to become ready, then retry to check live Peers again."
+      "unavailable": "No device is available to search right now. Your query is preserved; retry once a device is ready."
     },
     "blockInspector": {
-      "loadFailed": "Unable to load this Block.",
-      "title": "Block Inspector",
+      "loadFailed": "Unable to load this entry.",
+      "title": "Entry",
       "id": "ID",
-      "resolver": "Resolver",
-      "created": "Created At",
-      "updated": "Updated At",
+      "resolver": "Type",
+      "created": "Created",
+      "updated": "Updated",
       "storage": "Storage",
-      "missing": "Block #{block} no longer exists.",
+      "missing": "Entry #{block} no longer exists.",
       "viewContent": "View content",
-      "ruminate": "Ruminate",
+      "ruminate": "Reunderstand",
       "rumination": {
-        "success": "The info base was reconsidered and the graph was refreshed.",
-        "error": "Rumination failed. The graph was not changed by a confirmed result.",
-        "outcome-unknown": "The provider may have completed the request. Refresh and inspect the graph before trying again."
+        "success": "Reunderstood this entry and refreshed the graph.",
+        "error": "Reunderstanding failed; no visible graph change was produced.",
+        "outcome-unknown": "The provider may have already completed it. Refresh and inspect the graph before trying again."
       }
     },
     "solvedContent": {
       "title": "Content",
-      "missing": "Block #{block} no longer exists."
+      "missing": "Entry #{block} no longer exists."
     },
     "graph": {
-      "empty": "No blocks to display",
-      "community": {
-        "all": "All Communities",
-        "searchPlaceholder": "Search communities...",
-        "noResults": "No communities found",
-        "nodeCount": "{count} nodes",
-        "previous": "Previous Community",
-        "next": "Next Community"
+      "empty": "No entries to display",
+      "loading": "Loading…",
+      "stats": "{blocks} entries · {relations} relations",
+      "relationDetails": "Relation details",
+      "inspectRelation": "Inspect relation #{relation}",
+      "search": "Search information",
+      "viewOptions": "View options",
+      "neighborhoodSize": "Neighborhood size",
+      "emphasizeRelations": "Emphasize relations",
+      "emptyTitle": "Nothing here yet",
+      "missingTitle": "This entry is no longer available",
+      "notFoundTitle": "No connecting path found",
+      "limitTitle": "The path exceeds the exploration limit",
+      "errorTitle": "Unable to load the graph",
+      "emptyHint": "Search for another starting point.",
+      "limitHint": "Try two closer starting points.",
+      "notFoundHint": "Try another pair of entries.",
+      "delegationUnavailableHint": "No device is available to process this query. Your query is preserved; retry once a device is ready.",
+      "genericHint": "Your current location is preserved. You can try loading it again.",
+      "retry": "Retry",
+      "searchInformation": "Search information",
+      "exploreBlock": "Explore entry #{block}",
+      "inspectBlock": "Inspect entry #{block}",
+      "exploreRelation": "Explore relation #{relation}",
+      "previewUnavailable": "Preview unavailable",
+      "details": "Details",
+      "scene": {
+        "block": "Around entry #{block}",
+        "relation": "Around relation #{relation}",
+        "path": "Path from #{from} to #{to}",
+        "recall": "Results for “{query}”",
+        "default": "Explore your information"
       },
+      "scale": {
+        "compact": "Compact · 8 relations",
+        "standard": "Standard · 20 relations",
+        "broad": "Broad · 50 relations"
+      },
+      "direction": {
+        "both": "Both directions",
+        "in": "Incoming",
+        "out": "Outgoing"
+      },
+      "expansionMode": "Expansion mode",
+      "expansion": {
+        "smooth": "Smooth transition",
+        "incremental": "Incremental expansion"
+      },
+      "layoutAlgorithm": "Layout algorithm",
       "layout": {
-        "auto": "Auto Layout",
-        "force": "Force Directed",
-        "dagre": "Hierarchical",
-        "circular": "Circular",
         "radial": "Radial",
-        "grid": "Grid",
-        "detected": "Detected"
+        "force": "Force Directed",
+        "hierarchical": "Hierarchical"
       },
-      "topology": {
-        "tree": "Tree",
-        "dag": "DAG",
-        "star": "Star",
-        "linear": "Linear",
-        "cyclic": "Cyclic",
-        "disconnected": "Disconnected",
-        "unknown": "Unknown"
+      "community": {
+        "all": "All groups",
+        "searchPlaceholder": "Search groups...",
+        "noResults": "No groups found",
+        "nodeCount": "{count} entries",
+        "previous": "Previous group",
+        "next": "Next group"
       }
     }
   }

@@ -6,6 +6,8 @@ export function xUrl(path: string): string {
 
 export function visibleText(value: RichText | undefined): string {
   if (!value) return ''
+  // RichText 的区间按 Unicode 码点计数，不能改为字素或 UTF-16 索引。
+  // oxlint-disable-next-line typescript/no-misused-spread
   return value.visible ? [...value.text].slice(...value.visible).join('') : value.text
 }
 

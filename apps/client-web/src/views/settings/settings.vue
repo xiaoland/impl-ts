@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { InkForm, InkInput, InkButton, InkDoubleCheck, InkDropdown } from '@inkcre/ui-web'
+import {
+  InkForm,
+  InkInput,
+  InkButton,
+  InkDoubleCheck,
+  InkDropdown,
+  InkSwitch,
+} from '@inkcre/ui-web'
+import { toast } from '@/components/toast/toast'
 import { configStore, MetaConfigSchema, type MetaConfig } from '@inkcre/core'
 import { z } from 'zod'
 import { setLocale, SUPPORT_LOCALES, LOCALE_NAMES, type SupportLocale } from '@/locales'
@@ -17,6 +25,7 @@ import {
 } from '@/core'
 
 const { t } = useI18n()
+const telemetryLabelId = useId()
 
 const metaFormConfig = reactive<MetaConfig>({ ...configStore.metaConfig })
 const pendingAction = ref<'save' | 'import' | 'reset' | null>(null)
@@ -104,11 +113,13 @@ const onSave = async () => {
     void refreshCurrentWebPeer()
     Object.assign(metaFormConfig, configStore.metaConfig)
     feedback.value = { action: 'save', error: false, message: t('settings.saveSuccess') }
+    toast.success(t('settings.saveSuccess'))
   } catch (error) {
     if (webPeerConnectionState.value === 'idle' && hasConnectedConfig.value)
       webPeerConnectionState.value = 'failed'
     console.error('Failed to save config:', error)
     feedback.value = { action: 'save', error: true, message: t('common.saveFailed') }
+    toast.error(t('common.saveFailed'))
   } finally {
     pendingAction.value = null
   }
@@ -183,6 +194,7 @@ const onFileSelected = async (event: Event) => {
 
 <template>
   <main class="settings-view" :aria-label="t('settings.title')">
+    <h1 class="sr-only">{{ t('settings.title') }}</h1>
     <InkForm
       layout="col"
       class="settings-view__form"
@@ -236,10 +248,14 @@ const onFileSelected = async (event: Event) => {
 
       <fieldset class="settings-view__group">
         <legend>{{ t('settings.telemetry') }}</legend>
-        <label class="flex items-center gap-2">
-          <input v-model="metaFormConfig.telemetry_enabled" type="checkbox" :disabled="formBusy" />
-          {{ t('settings.telemetryEnabled') }}
-        </label>
+        <div class="settings-view__switch-field">
+          <span :id="telemetryLabelId">{{ t('settings.telemetryEnabled') }}</span>
+          <InkSwitch
+            v-model="metaFormConfig.telemetry_enabled"
+            :disabled="formBusy"
+            :aria-labelledby="telemetryLabelId"
+          />
+        </div>
         <InkInput
           v-model="metaFormConfig.telemetry_peer_relay_url"
           :label="t('settings.telemetryRelay')"

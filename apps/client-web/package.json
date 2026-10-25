@@ -1,6 +1,6 @@
 {
   "name": "@inkcre/client-web",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,16 +8,21 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "type-check": "vue-tsc --build",
+    "test:a11y": "playwright test accessibility.spec.ts",
+    "test:a11y:report": "playwright test accessibility.spec.ts --reporter=html"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.1.1",
     "@inkcre/core": "workspace:*",
     "@inkcre/extension-runtime-client-web": "https://github.com/InKCre/ext-reg/releases/download/runtime-client-web-v0.4.1/inkcre-extension-runtime-client-web-0.4.1.tgz",
-    "@inkcre/ui-web": "2.3.0",
+    "@inkcre/ui-web": "2.5.0",
     "@module-federation/runtime": "^0.21.4",
     "@supabase/postgrest-js": "^2.84.0",
+    "@types/d3-force": "^3.0.10",
     "@vue-flow/core": "^1.48.1",
     "@vueuse/core": "^14.0.0",
+    "d3-force": "^3.0.0",
     "dayjs": "^1.11.19",
     "jose": "^6.1.2",
     "pinia": "^3.0.3",
@@ -29,14 +34,15 @@
     "zod-config": "^1.4.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@iconify-json/mdi": "^1.2.3",
-    "@module-federation/enhanced": "^0.22.0",
     "@module-federation/vite": "^1.1.0",
+    "@playwright/test": "1.61.1",
     "@tsconfig/node22": "^22.0.2",
     "@types/node": "^22.16.5",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.2",
-    "@vue/tsconfig": "^0.7.0",
+    "@vue/tsconfig": "catalog:",
     "get-port": "^7.1.0",
     "npm-run-all2": "^8.0.4",
     "picocolors": "^1.1.1",

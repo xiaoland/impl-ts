@@ -2,9 +2,22 @@
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  background: sys-var(color, surface, base);
   color: sys-var(color, text, base);
   padding: clamp(48px, 9vw, 112px) clamp(24px, 7vw, 96px);
+
+  &__view-switch {
+    width: min(880px, 100%);
+    margin-inline: auto;
+    margin-bottom: sys-var(space, lg);
+    display: flex;
+    justify-content: flex-end;
+
+    /* InkTabs 的 underline 与 tab 边界齐平，视觉拥挤；
+       给 tabs 容器加水平 padding，让 underline 比 tab 内容宽出呼吸空间。 */
+    :deep(.ink-tabs) {
+      padding-inline: sys-var(space, sm);
+    }
+  }
 
   &__hero,
   &__results {
@@ -59,6 +72,11 @@
         outline: 2px solid sys-var(color, border, strong);
         outline-offset: 2px;
       }
+    }
+
+    /* InkButton md 36px，输入框 min-height 48px；让提交按钮与输入框同高。 */
+    .ink-button {
+      min-block-size: 48px;
     }
   }
 

@@ -12,7 +12,7 @@ import {
   validateRecoveryRun,
 } from './publish-core-sdk.mjs'
 
-test('partial reruns require the original unexpired SDK candidate', () => {
+void test('partial reruns require the original unexpired SDK candidate', () => {
   assert.equal(savedCandidate([], '1'), undefined)
   assert.throws(() => savedCandidate([], '1', true), /original workflow candidate/)
   assert.throws(() => savedCandidate([], '2'), /Missing SDK candidate/)
@@ -24,7 +24,7 @@ test('partial reruns require the original unexpired SDK candidate', () => {
   assert.equal(savedCandidate([original], '2'), original)
 })
 
-test('draft recovery uploads missing saved assets without replacing an existing archive', async () => {
+void test('draft recovery uploads missing saved assets without replacing an existing archive', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'inkcre-sdk-publish-test-'))
   const originalDirectory = process.cwd()
   const originalPath = process.env.PATH
@@ -148,7 +148,7 @@ process.stdout.write(JSON.stringify(response));
   }
 })
 
-test('published SDK is verified against source tag and every saved package byte', async () => {
+void test('published SDK is verified against source tag and every saved package byte', async () => {
   const bytes = Buffer.from('original prebuilt SDK archive')
   const receipt = validateReceipt({
     name: '@inkcre/core',
@@ -205,7 +205,7 @@ test('published SDK is verified against source tag and every saved package byte'
   }
 })
 
-test('recovery accepts only the same completed workflow from protected main history', () => {
+void test('recovery accepts only the same completed workflow from protected main history', () => {
   const run = {
     event: 'push',
     head_branch: 'main',

@@ -1,87 +1,194 @@
 .peer-card {
-  display: flex;
-  flex-wrap: wrap;
-  gap: sys-var(space, sm);
-  overflow-wrap: anywhere;
-  justify-content: space-between;
-  align-items: center;
-  padding: sys-var(space, md);
-  background-color: sys-var(color, surface, subtle);
+  // Inherits .entity-card pattern (global stylesheet).
 
-  &__item-info {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: sys-var(space, xs);
-  }
-
-  &__heading {
+  &__title {
+    // Title is an inline-edit InkInput, not plain text — remove its default
+    // h3-adjacent margins that conflict with the inline input's own layout.
     display: flex;
     align-items: center;
-    gap: sys-var(space, sm);
-    flex-wrap: wrap;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow: hidden;
+
+    // Ensure long names don't break layout
+    :deep(.ink-input--inline) {
+      max-inline-size: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
-  &__version,
-  &__current {
+  // Status badges - consistent styling with borders
+  &__status-badge {
     @include apply-font(label-md);
-    color: sys-var(color, text, subtle);
-  }
-
-  &__current {
+    padding-inline: sys-var(space, sm);
+    padding-block: sys-var(space, xs);
     white-space: nowrap;
+    flex-shrink: 0;
+    border: 1px solid;
+    background-color: transparent;
   }
 
-  &__item-id {
-    @include apply-font(label-md, $mono: true);
+  &__status--online {
+    color: sys-var(color, text, base);
+    border-color: sys-var(color, border, base);
+  }
+
+  &__status--offline {
     color: sys-var(color, text, subtle);
+    border-color: sys-var(color, border, subtle);
   }
 
-  &__item-capabilities {
+  &__status--unknown {
+    color: sys-var(color, text, subtle);
+    border-color: sys-var(color, border, subtle);
+  }
+
+  &__status--current {
+    color: sys-var(color, text, base);
+    border-color: sys-var(color, border, base);
+    font-weight: 500;
+  }
+
+  &__status--capabilities {
+    color: sys-var(color, text, subtle);
+    border-color: sys-var(color, border, subtle);
+    font-size: 0.75rem;
+  }
+
+  &__capabilities-btn {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-height: auto;
+    min-width: auto;
+
+    &:hover {
+      color: sys-var(color, text, base);
+      border-color: sys-var(color, border, base);
+    }
+
+    &:focus-visible {
+      outline: 2px solid sys-var(color, border, strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__capabilities-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: sys-var(space, sm);
+  }
+
+  &__view-toggle {
+    padding: sys-var(space, xs) sys-var(space, sm);
+    border: 1px solid sys-var(color, border, subtle);
+    background: none;
+    color: sys-var(color, text, subtle);
     @include apply-font(body-sm);
-    color: sys-var(color, text, subtle);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: sys-var(color, text, base);
+      border-color: sys-var(color, border, base);
+    }
+
+    &:focus-visible {
+      outline: 2px solid sys-var(color, border, strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__capabilities-list {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 60vh;
+    overflow-y: auto;
+
+    li {
+      @include apply-font(body-sm);
+    }
+
+    code {
+      display: block;
+      padding: sys-var(space, xs) sys-var(space, sm);
+      background-color: sys-var(color, surface, subtle);
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__capabilities-raw {
+    margin: 0;
+    padding: sys-var(space, sm);
+    background-color: sys-var(color, surface, subtle);
+    @include apply-font(label-md, $mono: true);
+    font-size: 0.8em;
+    line-height: 1.4;
+    overflow-x: auto;
+    max-height: 60vh;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
   }
 
   &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: sys-var(space, xs);
+    flex-shrink: 0;
   }
 
-  &__readiness {
+  &__save-error {
     @include apply-font(body-sm);
-    max-width: 100%;
-    p {
-      margin: sys-var(space, xs) 0;
-    }
-    ul {
-      margin: sys-var(space, xs) 0;
-      padding-left: sys-var(space, md);
-    }
+    margin: 0;
   }
 
-  &__details {
+  // Readiness warnings
+  &__readiness-warning,
+  &__readiness-unavailable {
     @include apply-font(body-sm);
-    max-width: 100%;
-    summary {
-      cursor: pointer;
-    }
+    padding: sys-var(space, sm) sys-var(space, md);
+    margin: 0;
+
     p {
-      margin: sys-var(space, xs) 0;
-    }
-    pre {
-      max-width: 100%;
-      overflow-x: auto;
+      margin: 0;
     }
   }
 
-  &__item-status {
-    @include apply-font(label-md);
-    padding: sys-var(space, xs) sys-var(space, sm);
-    border-radius: sys-var(radius, none);
-
+  &__readiness-warning {
     background-color: sys-var(color, surface, subtle);
+    border-inline-start: 3px solid sys-var(color, feedback, error);
+  }
+
+  &__readiness-unavailable {
     color: sys-var(color, text, subtle);
+    background-color: sys-var(color, surface, subtle);
+    border-inline-start: 3px solid sys-var(color, border, base);
+  }
+
+  // Delete dialog info
+  &__delete-info {
+    margin: 0 0 sys-var(space, md);
+  }
+
+  &__delete-name {
+    @include apply-font(body-md);
+    margin: 0 0 sys-var(space, xs);
+  }
+
+  &__delete-id {
+    @include apply-font(label-md, $mono: true);
+    color: sys-var(color, text, subtle);
+    padding: sys-var(space, xs) sys-var(space, sm);
+    background-color: sys-var(color, surface, subtle);
+    display: inline-block;
+  }
+
+  &__delete-warning {
+    @include apply-font(body-sm);
+    color: sys-var(color, feedback, error);
+    margin: sys-var(space, sm) 0 0;
   }
 }

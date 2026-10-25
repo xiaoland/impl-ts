@@ -80,8 +80,8 @@ async function ruminate(): Promise<void> {
 
 <template>
   <InkPopup
-    class="info-base-inspector-surface"
-    style="width: 420px; max-width: calc(100vw - 2 * var(--sys-space-md)); padding: 0"
+    class="info-base-side-panel"
+    style="width: 420px; padding: 0"
     :open="open"
     :scrim="false"
     position="right"
@@ -163,3 +163,20 @@ async function ruminate(): Promise<void> {
 </template>
 
 <style lang="scss" scoped src="./BlockInspectorPopup.scss" />
+
+<style lang="scss">
+/* Side panel styling - applied globally to override InkPopup */
+.info-base-side-panel {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  transform: none !important;
+  height: 100vh;
+  max-height: 100vh;
+  max-width: 90vw;
+  margin: 0;
+  border-left: 1px solid var(--sys-color-border-base);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+}
+</style>

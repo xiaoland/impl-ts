@@ -123,6 +123,11 @@ jobs:
           cp -R .preview-registry/. apps/client-web/dist/
           cp -R apps/client-web/dist "$GITHUB_WORKSPACE/.pages-preview"
 
+      - name: Bind Module Federation assets to the selected snapshot
+        env:
+          INKCRE_PREVIEW_SOURCE_SHA: ${{ needs.identity.outputs.head_sha }}
+        run: node controller/scripts/prepare-pages-preview.mjs "$GITHUB_WORKSPACE/.pages-preview"
+
       - name: Deploy to the isolated Pages preview branch
         id: pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0

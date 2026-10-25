@@ -8,6 +8,7 @@ export interface BlockNodeData {
   previewStatus: 'loading' | 'success' | 'error'
   focal: boolean
   muted: boolean
+  focusing?: boolean
 }
 
 export interface RelationEdgeData {

@@ -47,6 +47,8 @@ const refreshPeers = async () => {
 }
 
 const getPeerStatus = (peer: Peer): 'online' | 'offline' | 'unknown' => {
+  // Current browser is always online
+  if (peer.id === currentPeerId) return 'online'
   if (livePeers.value.has(peer.id)) return 'online'
   if (peer.lease_expires_at === null) return 'unknown'
   return 'offline'
@@ -58,8 +60,13 @@ onMounted(refreshPeers)
 <template>
   <section class="peer-list">
     <div v-if="connected" class="peer-list__header">
-      <h1>{{ t('peer.title') }}</h1>
-      <InkButton :text="t('peer.refresh')" size="sm" :is-loading="loading" @click="refreshPeers" />
+      <InkButton
+        :text="t('peer.refresh')"
+        size="sm"
+        :is-loading="loading"
+        :disabled="loading"
+        @click="refreshPeers"
+      />
     </div>
 
     <InkPlaceholder v-if="!connected" :title="t('extension.connectDeployment')">
@@ -81,10 +88,14 @@ onMounted(refreshPeers)
       v-else-if="error && peers.length === 0"
       state="error"
       :title="t('peer.listFailed')"
-      :description="error"
+      :description="t('peer.errorDescription')"
     >
       <template #actions>
-        <InkButton :text="t('common.refresh')" @click="refreshPeers" />
+        <InkButton :text="t('common.retry')" @click="refreshPeers" />
+        <details class="peer-list__error-details">
+          <summary>{{ t('common.errorDetails') }}</summary>
+          <code>{{ error }}</code>
+        </details>
       </template>
     </InkPlaceholder>
     <InkPlaceholder v-else-if="peers.length === 0" :title="t('peer.empty')" />

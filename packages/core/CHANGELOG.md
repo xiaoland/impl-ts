@@ -1,5 +1,14 @@
 # @inkcre/core
 
+## 0.4.1
+
+### Patch Changes
+
+- 2d260e3: 普通 Web Peer JWT 保持 24 小时签发默认值，并与数据库准入策略解耦；生成的协议合同不再把客户端默认值声明为数据库准入上限。
+- 304cb5d: Core SDK 在 0.4 兼容线新增可选阅读目标接口 `Resolver.getRecallTarget`、`RecallTarget`、`RecallGroup` 和 `presentLexicalMatches`，让宿主将同封 newsletter 的多条命中汇入阅读入口，保留原始证据、顺序和独立投递副本。旧 Resolver 默认返回 null，无需改动。
+
+  保留 SDK 0.4 的 `peerJwtContract.maximum_lifetime_seconds` 兼容字段（包含 `databaseRuntimeContract.jwt` 别名），其值仅代表历史客户端签发默认值，不代表数据库准入上限。现有 Runtime 0.4.1、Mail 0.4.0 与其他声明支持 Core 0.4 的原生分发继续兼容。
+
 ## 0.4.0
 
 ### Minor Changes

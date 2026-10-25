@@ -7,7 +7,7 @@ import path from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-test('Changesets reads all pending intent in a shallow detached release checkout', async () => {
+void test('Changesets reads all pending intent in a shallow detached release checkout', async () => {
   const repository = fileURLToPath(new URL('../..', import.meta.url))
   const cli = createRequire(import.meta.url).resolve('@changesets/cli/bin.js')
   const checkout = await mkdtemp(path.join(os.tmpdir(), 'inkcre-release-checkout-'))

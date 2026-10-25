@@ -10,6 +10,7 @@ import { createInfoBaseRouterAdapter } from './router'
 import 'uno.css'
 import '@inkcre/ui-web/styles'
 import '@vue-flow/core/dist/style.css'
+import './styles/entity-card.scss'
 
 const app = createApp(App)
 

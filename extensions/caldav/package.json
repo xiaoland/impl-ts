@@ -1,6 +1,6 @@
 {
   "name": "@inkcre/ext-caldav",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
     "@inkcre/ui-web": "2.3.0",
     "@module-federation/vite": "^1.1.0",
     "@vitejs/plugin-vue": "^6.0.1",
-    "@vue/tsconfig": "^0.7.0",
+    "@vue/tsconfig": "catalog:",
     "typescript": "catalog:",
     "vite": "^7.0.6",
     "vue-tsc": "catalog:"

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 import type { RelationEdgeEmits, RelationEdgeProps } from './RelationEdge'
 
 const props = defineProps<RelationEdgeProps>()
 const emit = defineEmits<RelationEdgeEmits>()
+const { t } = useI18n()
 
 const label = computed(() => {
   const content = props.data?.relation.content.trim() ?? ''
@@ -56,7 +58,7 @@ const labelY = computed(() => path.value[2])
       <button
         type="button"
         class="relation-edge__focus"
-        :aria-label="`Explore Relation #${data?.relation.id}`"
+        :aria-label="t('infoBase.graph.exploreRelation', { relation: data?.relation.id })"
         @click="emit('focus', data!.relation.id)"
       >
         {{ label }}

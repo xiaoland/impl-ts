@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAsyncState, useIntervalFn } from '@vueuse/core'
 import { InkLoading, InkButton, InkField, InkSkeleton } from '@inkcre/ui-web'
 import LogsViewer from '@/components/obsrv/LogsViewer/LogsViewer.vue'
+import { formatTypeId } from '@/utils/format'
 import { APIError, Job, JobStatus, Source, telemetryDiagnosticsUrl } from '@inkcre/core'
 import dayjs from 'dayjs'
 
@@ -132,7 +133,12 @@ watch(
         <summary>{{ t('common.errorDetails') }}</summary>
         <p>{{ jobError instanceof Error ? jobError.message : String(jobError) }}</p>
       </details>
-      <InkButton :text="t('common.retry')" :is-loading="jobLoading" @click="refetchJob()" />
+      <InkButton
+        :text="t('common.retry')"
+        :is-loading="jobLoading"
+        :disabled="jobLoading"
+        @click="refetchJob()"
+      />
       <InkButton :text="t('common.back')" theme="subtle" size="sm" @click="$router.back()" />
     </div>
     <!-- Content -->
@@ -140,7 +146,7 @@ watch(
       <!-- Left Section: Metadata -->
       <section class="job-view__metadata">
         <div class="metadata__header">
-          <h2 class="metadata__title">{{ t('navigation.job') }} #{{ job.id }}</h2>
+          <h1 class="metadata__title">{{ t('navigation.job') }} #{{ job.id }}</h1>
         </div>
 
         <InkField :label="t('job.jobId')">
@@ -177,7 +183,7 @@ watch(
           </div>
           <div v-else-if="source" class="metadata__value">
             <div class="source-info">
-              <span class="source-info__type">{{ source.type }}</span>
+              <span class="source-info__type">{{ formatTypeId(source.type) }}</span>
               <span class="source-info__nickname">{{ source.nickname }}</span>
               <span class="source-info__id">#{{ source.id }}</span>
             </div>
@@ -212,7 +218,7 @@ watch(
 
       <!-- Right Section: Logs -->
       <section class="job-view__logs">
-        <h3 class="job-view__logs__title">{{ t('logs.title') }}</h3>
+        <h2 class="job-view__logs__title">{{ t('logs.title') }}</h2>
         <LogsViewer
           v-if="job"
           class="flex-1 w-full"

@@ -9,7 +9,6 @@
   align-items: flex-start;
   box-sizing: border-box;
   padding: clamp(16px, 4vw, 32px);
-  background: sys-var(color, surface, base);
 
   &__skeleton-row {
     display: grid;

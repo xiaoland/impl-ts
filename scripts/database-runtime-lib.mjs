@@ -17,6 +17,7 @@ import {
   closeDatabaseAccess,
   databaseAccessReady,
   openDatabaseAccess,
+  readExternalDatabaseDescriptor,
   resolveDatabaseProviderConfig,
   runDatabaseDocker,
   runDatabaseCompose,
@@ -151,23 +152,7 @@ function validateLoopbackUrl(value, label) {
 }
 
 async function externalRuntimeState(instance, provider) {
-  const descriptor = await readJson(provider.descriptor)
-  if (
-    descriptor.format !== 1 ||
-    descriptor.owner_repository !== 'InKCre/impl-py' ||
-    !/^[a-f0-9]{16}$/.test(descriptor.identity) ||
-    descriptor.profile !== 'development'
-  ) {
-    throw new Error('external database runtime descriptor has invalid owner or identity')
-  }
-  if (
-    descriptor.project !== `inkcre-core-py-${descriptor.identity}` ||
-    !descriptor.docker?.daemon_id ||
-    !/^[a-f0-9]{64}$/.test(descriptor.source_fingerprint) ||
-    descriptor.converging
-  ) {
-    throw new Error('external database runtime provenance is incomplete')
-  }
+  const descriptor = readExternalDatabaseDescriptor(provider)
 
   const directory = dirname(provider.descriptor)
   return {
@@ -377,13 +362,17 @@ export async function fetchStatus(url, expectedStatuses, timeout = 3000) {
   }
 }
 
-export async function runtimeIsReady(state, timeout = 3000) {
-  if (!databaseAccessReady(state)) return false
+export async function inspectRuntimeReadiness(state, timeout = 3000) {
+  if (!databaseAccessReady(state)) return { tunnel: false, core: false, postgrest: false }
   const [coreReady, postgrestReady] = await Promise.all([
     fetchStatus(`${state.urls.core}readyz`, [200], timeout),
     fetchStatus(state.urls.postgrest, [401], timeout),
   ])
-  return coreReady && postgrestReady
+  return { tunnel: true, core: coreReady, postgrest: postgrestReady }
+}
+
+export async function runtimeIsReady(state, timeout = 3000) {
+  return Object.values(await inspectRuntimeReadiness(state, timeout)).every(Boolean)
 }
 
 async function createPeerToken(secret) {
@@ -486,19 +475,36 @@ export function readiness(instance) {
   if (provider.kind === 'external') {
     const directory = dirname(provider.descriptor)
     const result = JSON.parse(readFileSync(`${directory}/readiness.json`, 'utf8'))
-    const descriptor = JSON.parse(readFileSync(provider.descriptor, 'utf8'))
-    if (
-      result.status !== 'ok' ||
-      result.runtime?.instance !== descriptor.identity ||
-      result.runtime?.owner_repository !== 'InKCre/impl-py' ||
-      result.runtime?.compose_project !== descriptor.project ||
-      result.runtime?.docker_daemon_id !== descriptor.docker?.daemon_id ||
-      result.runtime?.source_revision !== descriptor.source_revision ||
-      result.runtime?.source_fingerprint !== descriptor.source_fingerprint ||
-      result.contract?.revision !== descriptor.contract_revision ||
-      !result.migration?.current?.includes(descriptor.migration_head)
-    ) {
-      throw new Error('external database readiness and runtime descriptor differ')
+    const descriptor = readExternalDatabaseDescriptor(provider)
+    const expected = {
+      instance: descriptor.identity,
+      owner_repository: 'InKCre/impl-py',
+      compose_project: descriptor.project,
+      docker_daemon_id: descriptor.docker.daemon_id,
+      source_revision: descriptor.source_revision,
+      source_fingerprint: descriptor.source_fingerprint,
+    }
+    for (const [field, value] of Object.entries(expected)) {
+      if (result.runtime?.[field] !== value) {
+        throw new Error(
+          `external database readiness ${field} mismatch: expected ${JSON.stringify(value)}, got ${JSON.stringify(result.runtime?.[field] ?? null)}; inspect the impl-py owner; do not reset its database`
+        )
+      }
+    }
+    if (result.contract?.revision !== descriptor.contract_revision) {
+      throw new Error(
+        `external database contract mismatch: expected ${descriptor.contract_revision}, got ${result.contract?.revision ?? 'missing'}`
+      )
+    }
+    if (!result.migration?.current?.includes(descriptor.migration_head)) {
+      throw new Error(
+        `external database migration mismatch: expected ${descriptor.migration_head}, got ${JSON.stringify(result.migration?.current ?? [])}`
+      )
+    }
+    if (result.status !== 'ok') {
+      throw new Error(
+        `external database owner readiness is ${result.status ?? 'missing'}; inspect svc dev status database --repo <owner> --json`
+      )
     }
     return result
   }

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { fileMetadata, peerFileLocation } from '../../extensions/local-files/src/schema.ts'
 
-test('Peer file location preserves Unicode and reserved path characters', () => {
+void test('Peer file location preserves Unicode and reserved path characters', () => {
   const result = peerFileLocation(
     'inkcre-peer-file://a143b185-f43d-47d1-8ef7-1d3857284b01/Users/a/%E4%B8%AD%E6%96%87%20%23%3F.md'
   )
@@ -16,7 +16,7 @@ test('Peer file location preserves Unicode and reserved path characters', () => 
   }
 })
 
-test('Missing originals and failed extraction retain a distinct successful revision', () => {
+void test('Missing originals and failed extraction retain a distinct successful revision', () => {
   const metadata = fileMetadata.parse({
     location: 'inkcre-peer-file://a143b185-f43d-47d1-8ef7-1d3857284b01/Users/a/report.docx',
     format: 'docx',

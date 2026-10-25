@@ -5,7 +5,7 @@ import path from 'node:path'
 import { test } from 'node:test'
 import { captureCandidates } from '../publish-first-party-extensions.mjs'
 
-test('a prepared Mail release does not publish another producer with pending intent', async () => {
+void test('a prepared Mail release does not publish another producer with pending intent', async () => {
   const workspace = await mkdtemp(path.join(os.tmpdir(), 'inkcre-independent-release-'))
   const json = (file, value) => writeFile(path.join(workspace, file), JSON.stringify(value))
   try {

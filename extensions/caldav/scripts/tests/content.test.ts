@@ -7,7 +7,7 @@ const resource = (text: string) => JSON.stringify({ href: 'test.ics', text })
 const fixture = (name: string) =>
   readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8')
 
-test('the phone calendar retains the master, offline exception and all-day date boundaries', () => {
+void test('the phone calendar retains the master, offline exception and all-day date boundaries', () => {
   const result = parseResource(resource(fixture('calendar.ics')), 'calendar')
   assert.equal(result.kind, 'calendar')
   if (result.kind !== 'calendar') return
@@ -23,7 +23,7 @@ test('the phone calendar retains the master, offline exception and all-day date 
   assert.deepEqual(allDay.end, { value: '2026-10-21', zone: '', dateOnly: true })
 })
 
-test('Tasks.org parent references and completion state remain readable', () => {
+void test('Tasks.org parent references and completion state remain readable', () => {
   const result = parseResource(resource(fixture('tasks.ics')), 'calendar')
   assert.equal(result.kind, 'calendar')
   if (result.kind !== 'calendar') return
@@ -34,7 +34,7 @@ test('Tasks.org parent references and completion state remain readable', () => {
   assert.equal(child.status, 'NEEDS-ACTION')
 })
 
-test('a real Android vCard retains its two phones and embedded raster photo', () => {
+void test('a real Android vCard retains its two phones and embedded raster photo', () => {
   const result = parseResource(resource(fixture('contact.vcf')), 'contact')
   assert.equal(result.kind, 'contact')
   if (result.kind !== 'contact') return
@@ -44,7 +44,7 @@ test('a real Android vCard retains its two phones and embedded raster photo', ()
   assert.equal(result.photoLink, null)
 })
 
-test('floating and unknown TZID wall times are not converted; folded text and recurrence dates survive', () => {
+void test('floating and unknown TZID wall times are not converted; folded text and recurrence dates survive', () => {
   const text = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -78,7 +78,7 @@ test('floating and unknown TZID wall times are not converted; folded text and re
   assert.equal(result.text, text)
 })
 
-test('unsafe photos and links cannot become active content; remote photos remain explicit links', () => {
+void test('unsafe photos and links cannot become active content; remote photos remain explicit links', () => {
   assert.equal(safeHttpUrl('javascript:alert(1)'), null)
   assert.equal(safeHttpUrl('https://user:secret@example.com/'), null)
   for (const [photo, embedded, link] of [
@@ -97,7 +97,7 @@ test('unsafe photos and links cannot become active content; remote photos remain
   }
 })
 
-test('malformed records preserve original content and the principal is not mislabeled as a calendar', () => {
+void test('malformed records preserve original content and the principal is not mislabeled as a calendar', () => {
   const invalid = parseResource(resource('not a calendar'), 'calendar')
   assert.deepEqual(invalid, { kind: 'invalid', text: 'not a calendar' })
   const principal = parseCollection(JSON.stringify({ path: 'inkcre', props: {} }))

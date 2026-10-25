@@ -12,6 +12,21 @@
   background: sys-var(color, surface, base);
   border: 1px solid sys-var(color, border, base);
   border-radius: 0;
+  position: relative;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: sys-var(color, border, strong);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  &--selected {
+    border-color: sys-var(color, border, strong);
+    box-shadow: 0 0 0 2px sys-var(color, border, subtle);
+  }
+
   &--focal {
     outline: 1px solid sys-var(color, border, strong);
     border-color: sys-var(color, border, strong);
@@ -20,10 +35,14 @@
     background: sys-var(color, surface, subtle);
     border-style: dashed;
   }
+  &--focusing {
+    animation: block-node-focusing 1.2s ease-in-out infinite;
+  }
   &__content {
     cursor: pointer;
     padding: sys-var(space, md);
     min-height: 48px;
+    position: relative;
   }
   &__content:focus-visible {
     outline: 2px solid sys-var(color, border, strong);
@@ -56,5 +75,17 @@
   &__preview-error {
     @include apply-font(body-sm);
     color: sys-var(color, text, subtle);
+  }
+}
+
+@keyframes block-node-focusing {
+  0%,
+  100% {
+    border-color: sys-var(color, border, base);
+    box-shadow: none;
+  }
+  50% {
+    border-color: sys-var(color, border, strong);
+    box-shadow: 0 0 0 3px sys-var(color, border, subtle);
   }
 }

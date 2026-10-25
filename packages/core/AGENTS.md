@@ -25,5 +25,5 @@ Shared models, Peer protocols, storage/resolver mechanics, and native Extension 
 - `pnpm --filter @inkcre/core type-check`
 - `pnpm --filter @inkcre/core build`
 - `pnpm lint:type-aware`
-- `pnpm type-check:ts7`
+- `pnpm type-check`
 - `pnpm check`

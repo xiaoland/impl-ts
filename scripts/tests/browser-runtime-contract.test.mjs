@@ -5,7 +5,7 @@ import {
   inspectBrowserRuntimeSource,
 } from '../browser-runtime-contract.mjs'
 
-test('business links need no URL or hosting-provider approval in source or artifacts', () => {
+void test('business links need no URL or hosting-provider approval in source or artifacts', () => {
   const source = `
 <script setup lang="ts">
 const documentation = 'https://docs.customer.example/api/config'
@@ -27,7 +27,7 @@ const externalApi = new OpenAI({ baseURL: 'https://ai.customer.example/v1' })
   assert.deepEqual(inspectBrowserArtifact(JSON.stringify({ sourcesContent: [source] })), [])
 })
 
-test('the same custom address is allowed as content and rejected as deployment configuration', () => {
+void test('the same custom address is allowed as content and rejected as deployment configuration', () => {
   const source = "const endpoint = 'https://customer.example/service'\n"
   assert.deepEqual(
     inspectBrowserRuntimeSource(source + 'const article = { href: endpoint }', 'a.ts'),
@@ -56,7 +56,7 @@ test('the same custom address is allowed as content and rejected as deployment c
   }
 })
 
-test('runtime values, empty defaults, generated identity and shadowed constants stay valid', () => {
+void test('runtime values, empty defaults, generated identity and shadowed constants stay valid', () => {
   const source = `
 const endpoint = 'https://public.example'
 const config = {
@@ -85,7 +85,7 @@ useWebExtensionStorage('inkcreApi', '')
   assert.deepEqual(inspectBrowserRuntimeSource(source, 'runtime.ts'), [])
 })
 
-test('fixed identity and credential defaults fail without printing credential values', () => {
+void test('fixed identity and credential defaults fail without printing credential values', () => {
   const source = `
 const credential = 'private-sample-credential'
 const ConfiguredSecret = z.string().default(() => credential)
@@ -99,7 +99,7 @@ signDatabaseToken(credential)
   assert.equal(errors.join('\n').includes('private-sample-credential'), false)
 })
 
-test('Vue script assignments are checked without interpreting template links as configuration', () => {
+void test('Vue script assignments are checked without interpreting template links as configuration', () => {
   const errors = inspectBrowserRuntimeSource(
     `
 <script setup lang="ts">
@@ -113,7 +113,7 @@ const config = { INKCRE_PGREST_URL: endpoint }
   assert.match(errors[0], /Settings.vue:4 hardcodes INKCRE_PGREST_URL/)
 })
 
-test('retired bootstrap and credential channels remain rejected without blocking documentation URLs', () => {
+void test('retired bootstrap and credential channels remain rejected without blocking documentation URLs', () => {
   assert.deepEqual(
     inspectBrowserRuntimeSource(
       "const docs = 'https://docs.example/api/config'; fetch('/api/config')",

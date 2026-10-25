@@ -21,7 +21,7 @@ function properties(sample: (typeof samples)[number]): GraphProperty[] {
   }))
 }
 
-test('Python-authored contact graph composes the same phones, photo and unknown properties', () => {
+void test('Python-authored contact graph composes the same phones, photo and unknown properties', () => {
   const sample = samples.find((item: any) => item.kind === 'contact')
   const text = composeGraph(sample.remainder, properties(sample))
   const actual = parseResource(JSON.stringify({ href: 'contact.vcf', text }), 'contact')
@@ -40,7 +40,7 @@ test('Python-authored contact graph composes the same phones, photo and unknown 
   assert.match(composeGraph(sample.remainder, changed), /\+8613800000001/)
 })
 
-test('component identity retains TZID exceptions and audio-alarm attachments', () => {
+void test('component identity retains TZID exceptions and audio-alarm attachments', () => {
   const sample = samples.find((item: any) => item.kind === 'calendar')
   const text = composeGraph(sample.remainder, properties(sample))
   const actual = parseResource(JSON.stringify({ href: 'event.ics', text }), 'calendar')
@@ -62,7 +62,7 @@ test('component identity retains TZID exceptions and audio-alarm attachments', (
   assert.match(text, /X-UNKNOWN;X-KEEP=yes:保留/)
 })
 
-test('duplicate authority and missing components fail instead of showing stale native values', () => {
+void test('duplicate authority and missing components fail instead of showing stale native values', () => {
   const sample = samples.find((item: any) => item.kind === 'contact')
   assert.throws(
     () => composeGraph(sample.text, properties(sample)),

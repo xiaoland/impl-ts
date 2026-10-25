@@ -14,7 +14,7 @@ import {
   selectSavedCandidate,
 } from './publish-first-party-extensions.mjs'
 
-test('a rerun cannot replace a missing or expired release candidate', () => {
+void test('a rerun cannot replace a missing or expired release candidate', () => {
   const candidate = { id: 42, name: 'first-party-extension-candidate', expired: false }
   const unrelated = { id: 43, name: 'other-artifact', expired: false }
   assert.equal(selectSavedCandidate([unrelated], '1'), undefined)
@@ -26,7 +26,7 @@ test('a rerun cannot replace a missing or expired release candidate', () => {
 })
 
 // A real HTTP fault-injection boundary for the publisher, not a replacement Registry implementation.
-test('an unknown MF-only upload resumes the saved ZIP and verifies even an existing association', async () => {
+void test('an unknown MF-only upload resumes the saved ZIP and verifies even an existing association', async () => {
   const workspace = await mkdtemp(path.join(os.tmpdir(), 'inkcre-publication-test-'))
   let registryUrl = 'https://registry.example.test'
   const prefix = '/extensions/test/source/1.0.0/module-federation/'

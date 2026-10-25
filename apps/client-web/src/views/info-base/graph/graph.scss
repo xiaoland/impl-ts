@@ -10,7 +10,6 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: sys-var(color, surface, base);
   color: sys-var(color, text, base);
   &__flow {
     flex: 1;
@@ -47,10 +46,36 @@
     gap: sys-var(space, md);
   }
   &__options {
-    summary {
-      @include apply-font(label-md);
+    &-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: sys-var(space, xs);
+      padding: 7px 16px;
+      border: 1px solid sys-var(color, border, base);
+      border-radius: sys-var(radius, base);
+      background: sys-var(color, surface, base);
+      font-size: 14px;
+      line-height: 20px;
+      min-height: unset;
       cursor: pointer;
+      box-sizing: border-box;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background: sys-var(color, surface, subtle);
+      }
+
+      &::after {
+        content: '▾';
+        font-size: 10px;
+        transition: transform 0.2s ease;
+      }
     }
+
+    &[open] &-summary::after {
+      transform: rotate(180deg);
+    }
+
     summary:focus-visible {
       outline: 2px solid sys-var(color, border, strong);
       outline-offset: 2px;
@@ -105,6 +130,25 @@
     display: flex;
     gap: sys-var(space, xs);
   }
+  &__scrim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.08);
+    z-index: 9;
+    animation: graph-view-scrim-fade-in 0.2s ease;
+  }
+}
+
+@keyframes graph-view-scrim-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .vue-flow {
   .vue-flow__pane {
@@ -112,5 +156,35 @@
   }
   .vue-flow__pane.dragging {
     cursor: grabbing;
+  }
+  /* Force GPU compositing on the transformation pane to prevent
+     ghost borders / flickering during rapid zoom changes. */
+  :deep(.vue-flow__transformationpane) {
+    will-change: transform;
+  }
+  /* Ensure nodes are promoted to their own compositing layer so that
+     border artifacts don't leak between zoom levels. */
+  :deep(.vue-flow__node) {
+    will-change: transform;
+  }
+  /* Fade in animation for newly added nodes. */
+  :deep(.vue-flow__node-enter-active) {
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+  :deep(.vue-flow__node-enter-from) {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  /* Fade out animation for removed nodes. */
+  :deep(.vue-flow__node-leave-active) {
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  :deep(.vue-flow__node-leave-to) {
+    opacity: 0;
+    transform: scale(0.8);
   }
 }

@@ -91,9 +91,9 @@ function onOpenChange(value: boolean): void {
 <template>
   <InkPopup
     class="info-base-inspector-surface"
-    style="width: 900px; max-width: calc(100vw - 2 * var(--sys-space-md)); padding: 0"
+    style="width: 900px; max-width: 95vw; padding: 0"
     :open="open"
-    :scrim="false"
+    :scrim="true"
     position="center"
     :aria-label="t('infoBase.solvedContent.title')"
     @update:open="onOpenChange"

@@ -19,7 +19,7 @@
     "@module-federation/vite": "^1.1.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitejs/plugin-vue-jsx": "^5.1.2",
-    "@vue/tsconfig": "^0.7.0",
+    "@vue/tsconfig": "catalog:",
     "sass-embedded": "^1.90.0",
     "typescript": "catalog:",
     "vite": "^7.0.6",

@@ -52,4 +52,17 @@
     gap: sys-var('space', 'md');
     flex-wrap: wrap;
   }
+
+  &__switch-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: sys-var('space', 'md');
+    cursor: pointer;
+
+    > span {
+      @include apply-font(label-lg);
+      color: sys-var('color', 'text', 'base');
+    }
+  }
 }

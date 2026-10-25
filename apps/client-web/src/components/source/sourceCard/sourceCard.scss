@@ -7,23 +7,55 @@
   border-bottom: 1px solid sys-var(color, border, subtle);
   min-width: 0;
   overflow-wrap: anywhere;
+
   &__identity {
     flex: 1 1 24rem;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, xs);
   }
+
   &__name {
     @include apply-font(body-lg);
     color: sys-var(color, text, base);
     text-decoration: underline;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration-thickness: 2px;
+    }
   }
+
   &__metadata {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: sys-var(space, sm);
-    margin-top: sys-var(space, xs);
     @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
   }
+
+  &__type {
+    font-size: 0.875rem;
+  }
+
+  &__id {
+    font-size: 0.75rem;
+  }
+
+  &__last-job {
+    display: flex;
+    align-items: center;
+    gap: sys-var(space, xs);
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__last-job-time {
+    font-size: 0.75rem;
+  }
+
   &__operations {
     display: flex;
     flex-wrap: wrap;
@@ -31,13 +63,70 @@
     gap: sys-var(space, sm);
     @include apply-font(body-sm);
   }
-  &__operations a {
-    color: sys-var(color, text, base);
-    text-decoration: underline;
+
+  &__loading {
+    color: sys-var(color, text, subtle);
   }
+
+  &__running-link {
+    display: inline-flex;
+    align-items: center;
+    gap: sys-var(space, xs);
+    color: sys-var(color, primary, base);
+    text-decoration: underline;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  &__status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: sys-var(color, text, subtle);
+    flex-shrink: 0;
+
+    &--pending,
+    &--running {
+      background: sys-var(color, text, base);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    &--success,
+    &--completed {
+      background: sys-var(color, text, subtle);
+    }
+
+    &--failed,
+    &--error {
+      background: sys-var(color, feedback, error);
+    }
+  }
+
   &__error {
     flex-basis: 100%;
     margin: 0;
     @include apply-font(body-sm);
+  }
+
+  // Remove underline for operations links
+  &__operations a {
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }

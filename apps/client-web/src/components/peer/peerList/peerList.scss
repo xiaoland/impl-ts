@@ -5,13 +5,9 @@
 
   &__header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     gap: sys-var(space, md);
-    h1 {
-      @include apply-font(title-lg);
-      margin: 0;
-    }
   }
 
   &__list {
@@ -31,6 +27,25 @@
     gap: sys-var(space, sm);
     p {
       margin: 0;
+    }
+  }
+
+  &__error-details {
+    text-align: left;
+
+    summary {
+      cursor: pointer;
+      color: sys-var(color, text, subtle);
+      @include apply-font(body-sm);
+    }
+
+    code {
+      display: block;
+      margin-top: sys-var(space, xs);
+      padding: sys-var(space, sm);
+      background: sys-var(color, surface, subtle);
+      @include apply-font(label-md, $mono: true);
+      overflow-wrap: anywhere;
     }
   }
 }

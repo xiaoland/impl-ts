@@ -1,4 +1,5 @@
 import { access, readFile, readdir } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -142,7 +143,6 @@ const rootScripts = [
   'lint',
   'lint:type-aware',
   'type-check',
-  'type-check:ts7',
   'type-check:ui',
 ]
 
@@ -153,7 +153,6 @@ for (const script of rootScripts) {
 }
 
 const expectedRootTools = {
-  '@typescript/native': 'npm:typescript@7.0.2',
   oxfmt: '0.60.0',
   oxlint: '1.75.0',
   'oxlint-tsgolint': '7.0.2001',
@@ -167,8 +166,29 @@ for (const [name, version] of Object.entries(expectedRootTools)) {
   }
 }
 
+const compilerVersion = '6.0.3-bridge.19.tsgo.7.0.2'
+const rootRequire = createRequire(`${repoRoot}/package.json`)
+const compilerPath = rootRequire.resolve('typescript/package.json')
+const compiler = rootRequire('typescript/package.json')
+if (compiler.name !== 'typescript-native-bridge' || compiler.version !== compilerVersion) {
+  errors.push(`typescript must resolve to typescript-native-bridge@${compilerVersion}`)
+}
+for (const alias of [
+  '@typescript/native',
+  '@typescript/native-preview',
+  '@typescript/typescript6',
+]) {
+  if (rootPackage.devDependencies?.[alias]) {
+    errors.push(`remove separate compiler ${alias}; all checks must use the TypeScript catalog`)
+  }
+}
+
 for (const workspace of workspaces) {
   const packageJson = await readJson(`${workspace.path}/package.json`)
+  const workspaceRequire = createRequire(`${repoRoot}/${workspace.path}/package.json`)
+  if (workspaceRequire.resolve('typescript/package.json') !== compilerPath) {
+    errors.push(`${workspace.name} resolves a different TypeScript compiler from the root`)
+  }
   const allDependencies = {
     ...packageJson.dependencies,
     ...packageJson.devDependencies,
@@ -196,10 +216,24 @@ for (const workspace of workspaces) {
   }
 
   if (
+    packageJson.devDependencies?.['@vue/tsconfig'] &&
+    packageJson.devDependencies['@vue/tsconfig'] !== 'catalog:'
+  ) {
+    errors.push(`${workspace.name} must use the workspace @vue/tsconfig catalog`)
+  }
+
+  if (
     packageJson.scripts?.['type-check']?.includes('vue-tsc') &&
     packageJson.devDependencies?.['vue-tsc'] !== 'catalog:'
   ) {
     errors.push(`${workspace.name} must use the workspace vue-tsc catalog`)
+  }
+
+  if (packageJson.scripts?.['type-check']?.includes('vue-tsc')) {
+    const vueRequire = createRequire(workspaceRequire.resolve('vue-tsc/package.json'))
+    if (vueRequire.resolve('typescript/package.json') !== compilerPath) {
+      errors.push(`${workspace.name} vue-tsc resolves a different TypeScript compiler`)
+    }
   }
 
   const builderScript = workspace.builderScript ?? 'build'
@@ -220,14 +254,25 @@ for (const pattern of ['packages/*', 'apps/*', 'extensions/*']) {
     errors.push(`pnpm-workspace.yaml is missing member pattern "${pattern}"`)
   }
 }
-if (!workspaceYaml.includes('typescript: 5.9.3')) {
-  errors.push('pnpm-workspace.yaml must pin ecosystem-supported TypeScript 5.9.3')
+if (
+  !workspaceYaml.includes(
+    `typescript: &typescript npm:typescript-native-bridge@${compilerVersion}`
+  ) ||
+  !workspaceYaml.includes('typescript: *typescript')
+) {
+  errors.push('the TypeScript catalog and transitive override must share the pinned TS7 bridge')
 }
 if (!workspaceYaml.includes('vue-tsc: 3.3.8')) {
   errors.push('pnpm-workspace.yaml must pin vue-tsc 3.3.8')
 }
 
 const corePackage = await readJson('packages/core/package.json')
+const coreRequire = createRequire(`${repoRoot}/packages/core/package.json`)
+const tsdownRequire = createRequire(coreRequire.resolve('tsdown/package.json'))
+const dtsRequire = createRequire(tsdownRequire.resolve('rolldown-plugin-dts/package.json'))
+if (dtsRequire.resolve('typescript/package.json') !== compilerPath) {
+  errors.push('Core declaration generation resolves a different TypeScript compiler')
+}
 const expectedCoreEntry = './dist/index.js'
 const expectedCoreTypes = './dist/index.d.ts'
 if (
@@ -243,6 +288,7 @@ if (
 
 const result = {
   ok: errors.length === 0,
+  compiler: { name: compiler.name, version: compiler.version },
   members,
   errors,
 }
@@ -250,6 +296,7 @@ const result = {
 if (jsonOutput) {
   console.log(JSON.stringify(result, null, 2))
 } else if (result.ok) {
+  console.log(`[OK] shared compiler: ${compiler.name}@${compiler.version}`)
   console.log(`[OK] workspace contract covers ${members.length} members`)
   for (const member of members) {
     const build = typeof member.build === 'string' ? member.build : member.build.exemption

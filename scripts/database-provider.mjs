@@ -321,19 +321,44 @@ export function runDatabaseDocker(provider, args, options = {}) {
   }
 }
 
+export function readExternalDatabaseDescriptor(provider) {
+  const descriptor = JSON.parse(readFileSync(provider.descriptor, 'utf8'))
+  if (descriptor.owner_repository !== 'InKCre/impl-py') {
+    throw new Error(
+      `external database owner: expected InKCre/impl-py, got ${JSON.stringify(descriptor.owner_repository ?? null)}; select the owner's current runtime.json in svc.local.json`
+    )
+  }
+  if (
+    descriptor.format !== 1 ||
+    !/^[a-f0-9]{16}$/.test(descriptor.identity) ||
+    descriptor.profile !== 'development'
+  ) {
+    throw new Error(
+      'external database requires format 1, a 16-digit hex identity and development profile'
+    )
+  }
+  if (descriptor.converging) {
+    throw new Error(
+      `external database ${descriptor.identity} is converging; inspect its impl-py owner with svc dev status database --repo <owner> --json`
+    )
+  }
+  if (
+    descriptor.project !== `inkcre-core-py-${descriptor.identity}` ||
+    !descriptor.docker?.daemon_id ||
+    !/^[a-f0-9]{64}$/.test(descriptor.source_fingerprint) ||
+    typeof descriptor.contract_revision !== 'string' ||
+    descriptor.contract_revision.length === 0
+  ) {
+    throw new Error(
+      'external database provenance is incomplete: check project, Docker daemon, source fingerprint and contract revision with the impl-py owner'
+    )
+  }
+  return descriptor
+}
+
 export function diagnoseDatabaseProvider(provider) {
   if (provider.kind === 'external') {
-    const descriptor = JSON.parse(readFileSync(provider.descriptor, 'utf8'))
-    if (
-      descriptor.format !== 1 ||
-      descriptor.owner_repository !== 'InKCre/impl-py' ||
-      !/^[a-f0-9]{16}$/.test(descriptor.identity) ||
-      typeof descriptor.contract_revision !== 'string' ||
-      descriptor.contract_revision.length === 0 ||
-      !descriptor.docker?.daemon_id
-    ) {
-      throw new Error('external database runtime descriptor is invalid')
-    }
+    const descriptor = readExternalDatabaseDescriptor(provider)
     return {
       kind: provider.kind,
       owner_repository: descriptor.owner_repository,

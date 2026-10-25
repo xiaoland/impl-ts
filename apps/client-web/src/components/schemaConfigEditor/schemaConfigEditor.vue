@@ -144,6 +144,12 @@ function selectMode(value: string) {
   flex-direction: column;
   gap: sys-var(space, md);
   min-width: 0;
+
+  /* InkTabs 的 underline 与 tab 边界齐平，视觉拥挤；
+     给 tabs 容器加水平 padding，让 underline 比 tab 内容宽出呼吸空间。 */
+  :deep(.ink-tabs) {
+    padding-inline: sys-var(space, sm);
+  }
 }
 
 .schema-config-editor__error {

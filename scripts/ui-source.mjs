@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { access, readFile, realpath } from 'node:fs/promises'
-import { isAbsolute, relative, resolve } from 'node:path'
+import { dirname, isAbsolute, relative, resolve } from 'node:path'
 
 export const uiSourceEnvironmentVariable = 'INKCRE_UI_SOURCE_ROOT'
 
@@ -133,6 +133,14 @@ export function createUiSourceAliases(uiSource) {
 }
 
 export function createUiSourceTsconfig(uiSource, appRoot, runtimeRoot) {
+  let rootDir = resolve(appRoot, '../..')
+  while (!isPathInside(rootDir, uiSource.root)) {
+    const parent = dirname(rootDir)
+    if (parent === rootDir) {
+      throw new Error('UI source and impl-ts must share a filesystem root for type checking')
+    }
+    rootDir = parent
+  }
   const paths = Object.fromEntries(
     uiSourceEntries.map(([specifier]) => [specifier, [uiSource.entries[specifier]]])
   )
@@ -143,7 +151,7 @@ export function createUiSourceTsconfig(uiSource, appRoot, runtimeRoot) {
   return {
     extends: resolve(appRoot, 'tsconfig.app.json'),
     compilerOptions: {
-      baseUrl: appRoot,
+      rootDir,
       paths: {
         '@/*': [resolve(appRoot, 'src/*')],
         '@inkcre/core': [resolve(appRoot, '../../packages/core/src/index.ts')],

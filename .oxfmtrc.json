@@ -1,7 +1,13 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "arrowParens": "always",
-  "ignorePatterns": ["/AGENTS.md", "/docs/index.md", "docs/_shared/**"],
+  "ignorePatterns": [
+    "/AGENTS.md",
+    "/docs/index.md",
+    "docs/_shared/**",
+    ".agents/skills/**",
+    "tasks/**"
+  ],
   "printWidth": 100,
   "proseWrap": "preserve",
   "semi": false,

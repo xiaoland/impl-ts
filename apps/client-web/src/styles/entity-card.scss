@@ -1,0 +1,86 @@
+// Shared entity-card pattern for Source / Peer / Extension cards.
+//
+// Layout contract:
+//   <article class="entity-card">
+//     <header class="entity-card__header">
+//       <div class="entity-card__title-group">
+//         <h3 class="entity-card__title">…</h3>
+//         <span class="entity-card__status">…</span>   <!-- optional -->
+//       </div>
+//     </header>
+//     <div class="entity-card__meta">…</div>          <!-- type / id / version -->
+//     <div class="entity-card__actions">…</div>       <!-- buttons, right-clustered -->
+//   </article>
+//
+// Design: flat surface.base + thin border.subtle (DESIGN "默认直角, 默认无阴影").
+// Status badge stays neutral; only failures use feedback.error.
+
+@use '@inkcre/ui-web/styles/mixins' as *;
+@use '@inkcre/ui-web/styles/functions' as *;
+
+.entity-card {
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, sm);
+  padding: sys-var(space, md);
+  border: 1px solid sys-var(color, border, subtle);
+  background-color: sys-var(color, surface, base);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: sys-var(space, sm);
+    min-inline-size: 0;
+  }
+
+  &__title-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: sys-var(space, sm);
+    min-inline-size: 0;
+    flex: 1 1 16rem;
+  }
+
+  &__title {
+    @include apply-font(title-sm);
+    margin: 0;
+    color: sys-var(color, text, base);
+    overflow-wrap: anywhere;
+  }
+
+  &__status {
+    @include apply-font(label-md);
+    padding-inline: sys-var(space, sm);
+    padding-block: 2px;
+    background-color: sys-var(color, surface, subtle);
+    color: sys-var(color, text, subtle);
+    white-space: nowrap;
+
+    &--error {
+      color: sys-var(color, feedback, error);
+      background-color: sys-var(color, surface, subtle);
+    }
+  }
+
+  &__meta {
+    @include apply-font(label-md, $mono: true);
+    color: sys-var(color, text, subtle);
+    display: flex;
+    flex-wrap: wrap;
+    gap: sys-var(space, sm);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: sys-var(space, sm);
+    margin-block-start: sys-var(space, xs);
+  }
+}

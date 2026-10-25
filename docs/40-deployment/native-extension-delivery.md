@@ -9,6 +9,18 @@ compatible `@inkcre/core` Host SDK range.
 
 ## Release Intent and Versioning
 
+Before SDK 1.0, each Core `0.y` line is a native compatibility boundary. Compatible additions can
+ship in a patch release within that line; a new minor requires an explicit consumer migration.
+Core 0.4.1 adds optional recall presentation APIs while retaining the 0.4 public surface and existing
+native ranges. The deprecated `peerJwtContract.maximum_lifetime_seconds` field (also available at
+`databaseRuntimeContract.jwt`) retains the historical signing default, not a database admission
+limit. The generated database contract remains the authority for the actual protocol.
+
+A targeted release uses Changesets to generate the selected units' versions and changelogs. A
+compatible SDK bump need not release MF consumers whose only generated change is dependency
+propagation: they do not bundle Core (`import: false`) and keep their declared Host SDK range.
+Consumers that bundle changed code or require a newer minimum SDK must be released with it.
+
 Contributors record intent with `pnpm changeset`, selecting only affected independently releasable
 Extension packages. On a protected `main` push,
 [`.github/workflows/extension-release.yml`](../../.github/workflows/extension-release.yml) runs the

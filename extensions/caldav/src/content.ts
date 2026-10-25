@@ -73,7 +73,9 @@ export function safeHttpUrl(value: string): string | null {
   }
 }
 
-function valueText(value: unknown): string {
+type PropertyValue = ReturnType<ICAL.Component['getFirstPropertyValue']>
+
+function valueText(value: PropertyValue | PropertyValue[]): string {
   if (value == null) return ''
   if (Array.isArray(value)) return value.map(valueText).filter(Boolean).join(' · ')
   return String(value)

@@ -5,6 +5,7 @@ export default defineConfig({
   ...baseConfig,
   testDir: '.',
   outputDir: '../../test-results/twitter-acceptance',
+  retries: 0,
   projects: [
     {
       name: 'twitter-info-base',

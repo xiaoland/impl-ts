@@ -25,7 +25,7 @@ const contract = {
   jwt: { algorithm: 'HS256', role: 'authenticated' },
 }
 
-test('explicit local inspection pins all artifact reads to the same existing image', () => {
+void test('explicit local inspection pins all artifact reads to the same existing image', () => {
   const calls = []
   const runDocker = (args) => {
     calls.push(args)
@@ -43,7 +43,7 @@ test('explicit local inspection pins all artifact reads to the same existing ima
   )
 })
 
-test('local identity opt-in never admits a mutable tag or mismatched image', () => {
+void test('local identity opt-in never admits a mutable tag or mismatched image', () => {
   const unexpectedDocker = () => assert.fail('invalid identity must fail before Docker')
   assert.throws(() => inspectCoreRelease(unexpectedDocker, imageId), /digest-pinned/)
   assert.throws(
@@ -56,7 +56,7 @@ test('local identity opt-in never admits a mutable tag or mismatched image', () 
   )
 })
 
-test('published digest admission and artifact checks remain independent of local opt-in', () => {
+void test('published digest admission and artifact checks remain independent of local opt-in', () => {
   const runDocker = (args) => JSON.stringify(args[3] === 'cat' ? contract : manifest)
   assert.equal(inspectCoreRelease(runDocker, digest).image, digest)
   assert.throws(

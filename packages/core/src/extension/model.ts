@@ -151,7 +151,7 @@ export class ExtensionModel implements InstalledExtension {
     if (response.data?.length !== 1) throw new ExtensionPersistenceError('uninstall')
   }
 
-  private static fromRow(row: unknown): ExtensionModel {
+  private static fromRow(this: void, row: unknown): ExtensionModel {
     return new ExtensionModel(InstalledExtensionSchema.parse(row))
   }
 }
@@ -328,7 +328,7 @@ export class ExtensionParticipationModel implements ExtensionParticipation {
     return ExtensionParticipationModel.fromRow(response.data)
   }
 
-  private static fromRow(row: unknown): ExtensionParticipationModel {
+  private static fromRow(this: void, row: unknown): ExtensionParticipationModel {
     return new ExtensionParticipationModel(ExtensionParticipationSchema.parse(row))
   }
 }

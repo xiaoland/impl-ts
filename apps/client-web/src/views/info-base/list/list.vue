@@ -2,7 +2,7 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { InkButton, InkSkeleton } from '@inkcre/ui-web'
+import { InkButton, InkPlaceholder, InkSkeleton } from '@inkcre/ui-web'
 import {
   CapabilityDelegationUnavailable,
   getInfoBaseRouter,
@@ -17,6 +17,7 @@ import { extensionHostRestoreState } from '@/core'
 import BlockInspectorPopup from '@/components/info-base/BlockInspectorPopup/BlockInspectorPopup.vue'
 import SolvedContentPopup from '@/components/info-base/SolvedContentPopup/SolvedContentPopup.vue'
 import RelationInspectorPopup from '@/components/info-base/RelationInspectorPopup/RelationInspectorPopup.vue'
+import InfoBaseViewTabs from '@/components/info-base/InfoBaseViewTabs.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -98,6 +99,13 @@ function refresh(): void {
 
 <template>
   <main class="info-base-list-view">
+    <!-- 首页（无 block/relation 参数）是搜索入口，不显示视图切换 tabs -->
+    <div
+      v-if="route.params.block || route.params.relation"
+      class="info-base-list-view__view-switch"
+    >
+      <InfoBaseViewTabs />
+    </div>
     <header class="info-base-list-view__hero">
       <h1>{{ t('infoBase.list.title') }}</h1>
       <form class="info-base-list-view__search" @submit.prevent="search">
@@ -113,6 +121,7 @@ function refresh(): void {
           theme="primary"
           native-type="submit"
           :is-loading="status === 'loading'"
+          :disabled="status === 'loading'"
         />
       </form>
       <p class="info-base-list-view__help">{{ t('infoBase.list.idle') }}</p>
@@ -133,20 +142,20 @@ function refresh(): void {
           <InkSkeleton style="width: 40%" /><InkSkeleton style="width: 80%" />
         </div>
       </div>
-      <div v-else-if="status === 'error'" class="info-base-list-view__state">
-        <p>{{ t(delegationUnavailable ? 'infoBase.list.unavailable' : 'infoBase.list.error') }}</p>
-        <details>
-          <summary>{{ t('common.errorDetails') }}</summary>
-          {{ error?.message }}
-        </details>
-        <InkButton :text="t('infoBase.list.retry')" theme="subtle" @click="refresh" />
-      </div>
-      <div
-        v-else-if="status === 'success' && matches.length === 0"
-        class="info-base-list-view__state"
+      <InkPlaceholder
+        v-else-if="status === 'error'"
+        state="error"
+        :title="t(delegationUnavailable ? 'infoBase.list.unavailable' : 'infoBase.list.error')"
+        :description="error?.message"
       >
-        <p>{{ t('infoBase.list.empty', { query: routeQuery }) }}</p>
-      </div>
+        <template #actions>
+          <InkButton :text="t('infoBase.list.retry')" theme="subtle" @click="refresh" />
+        </template>
+      </InkPlaceholder>
+      <InkPlaceholder
+        v-else-if="status === 'success' && matches.length === 0"
+        :title="t('infoBase.list.empty', { query: routeQuery })"
+      />
       <ol v-else-if="matches.length" class="info-base-list-view__matches">
         <li v-for="match in matches" :key="match.block.id">
           <button type="button" class="info-base-list-view__match" @click="openResult(match)">

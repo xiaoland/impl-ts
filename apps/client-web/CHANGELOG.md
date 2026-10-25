@@ -1,5 +1,13 @@
 # @inkcre/client-web
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [2d260e3]
+- Updated dependencies [304cb5d]
+  - @inkcre/core@0.4.1
+
 ## 0.1.5
 
 ### Patch Changes

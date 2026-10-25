@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { InkButton, InkSkeleton, InkPlaceholder, InkDropdown } from '@inkcre/ui-web'
+import { toast } from '@/components/toast/toast'
 import { usePageObjectTitle } from '@/composables/use-page-object-title'
 import {
   configStore,
@@ -44,6 +45,27 @@ const extensionError = ref<string | null>(null)
 const peerError = ref<string | null>(null)
 const browseUrl = ref<string | null>(null)
 const browseError = ref<string | null>(null)
+
+// Helper to format user-friendly error messages
+function formatErrorMessage(error: unknown, fallbackKey: string): string {
+  const message = error instanceof Error ? error.message : String(error)
+
+  // Don't expose raw HTML or technical details to users
+  if (message.includes('<!doctype') || message.includes('<html') || message.length > 200) {
+    return t(fallbackKey)
+  }
+
+  // Clean up common technical error patterns
+  if (message.includes('prepared statement')) {
+    return t('common.databaseError')
+  }
+
+  if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+    return t('common.networkError')
+  }
+
+  return message
+}
 const installRequested = computed(
   () => route.query.install !== undefined || route.query.version !== undefined
 )
@@ -92,7 +114,7 @@ async function refreshPeers(): Promise<void> {
     peers.value = allPeers
     livePeerIds.value = new Set(livePeers.map((peer) => peer.id))
   } catch (error) {
-    peerError.value = error instanceof Error ? error.message : String(error)
+    peerError.value = formatErrorMessage(error, 'extension.peerListUnavailable')
   } finally {
     peersLoading.value = false
   }
@@ -102,18 +124,38 @@ async function refreshExtensions(): Promise<void> {
   if (extensionsLoading.value) return
   extensionsLoading.value = true
   extensionError.value = null
-  try {
-    const [shared, selections] = await Promise.all([
-      getExtensionHost().list(),
-      ExtensionParticipationModel.list(),
-    ])
-    extensions.value = shared
-    participations.value = selections
-  } catch (error) {
-    extensionError.value = error instanceof Error ? error.message : String(error)
-  } finally {
-    extensionsLoading.value = false
+  const maxRetries = 3
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const [shared, selections] = await Promise.all([
+        getExtensionHost().list(),
+        ExtensionParticipationModel.list(),
+      ])
+      extensions.value = shared
+      participations.value = selections
+      lastError = null
+      break
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+
+      // If it's a prepared statement conflict, wait and retry
+      if (lastError.message.includes('prepared statement') && attempt < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)))
+        continue
+      }
+
+      // For other errors, fail immediately
+      break
+    }
   }
+
+  if (lastError) {
+    extensionError.value = formatErrorMessage(lastError, 'extension.errorDescription')
+  }
+
+  extensionsLoading.value = false
 }
 
 function refreshAll(): void {
@@ -129,7 +171,7 @@ async function loadBrowseUrl(): Promise<void> {
     browseUrl.value = url.href
   } catch (error) {
     browseUrl.value = null
-    browseError.value = error instanceof Error ? error.message : String(error)
+    browseError.value = formatErrorMessage(error, 'extension.registryUnavailable')
   }
 }
 
@@ -208,6 +250,7 @@ async function installReleaseInDeployment(): Promise<void> {
       manager: getExtensionHost(),
     })
     await refreshExtensions()
+    toast.success(t('extension.installSuccess'))
     await router.replace('/extensions')
   } catch (error) {
     installError.value = error instanceof Error ? error.message : String(error)
@@ -229,18 +272,26 @@ watch(
   { immediate: true }
 )
 
+// Watch for connection state changes and reload when connected
+watch(
+  connected,
+  (isConnected) => {
+    if (isConnected) {
+      refreshAll()
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
-  if (connected.value) {
-    void refreshExtensions()
-    void refreshPeers()
-  }
   void loadBrowseUrl()
 })
 </script>
 
 <template>
   <main class="extensions-view" :aria-label="t('extension.title')">
-    <header class="extensions-view__page-header">
+    <h1 class="sr-only">{{ t('extension.title') }}</h1>
+    <div class="extensions-view__actions">
       <a v-if="browseUrl" :href="browseUrl" class="extensions-view__browse-link">
         {{ t('extension.browseRegistry') }} ↗
       </a>
@@ -249,9 +300,10 @@ onMounted(() => {
         :text="t('common.refresh')"
         size="sm"
         :is-loading="extensionsLoading || peersLoading"
+        :disabled="extensionsLoading || peersLoading"
         @click="refreshAll"
       />
-    </header>
+    </div>
     <p v-if="browseError" role="alert" class="extensions-view__error">
       {{ t('extension.registryUnavailable') }}: {{ browseError }}
     </p>
@@ -363,10 +415,14 @@ onMounted(() => {
           v-else-if="extensionError && !extensions.length"
           state="error"
           :title="t('extension.installedUnavailable')"
-          :description="extensionError"
+          :description="t('extension.errorDescription')"
         >
           <template #actions>
             <InkButton :text="t('common.retry')" @click="refreshExtensions" />
+            <details class="extensions-view__error-details">
+              <summary>{{ t('common.errorDetails') }}</summary>
+              <code>{{ extensionError }}</code>
+            </details>
           </template>
         </InkPlaceholder>
         <InkPlaceholder

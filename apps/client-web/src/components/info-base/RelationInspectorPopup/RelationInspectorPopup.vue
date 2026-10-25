@@ -41,8 +41,8 @@ function close(): void {
 
 <template>
   <InkPopup
-    class="info-base-inspector-surface"
-    style="width: 360px; max-width: calc(100vw - 2 * var(--sys-space-md))"
+    class="info-base-side-panel"
+    style="width: 360px; padding: 0"
     :open="true"
     :scrim="false"
     position="right"
@@ -100,28 +100,40 @@ function close(): void {
 <style scoped lang="scss">
 .relation-inspector-popup {
   width: 100%;
+  height: 100%;
+  background: var(--sys-color-surface-base);
 
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: sys-var(space, md);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--sys-color-border-base);
   }
 
   h3 {
     margin: 0;
     @include apply-font(title-sm);
   }
+
+  > *:not(header) {
+    padding-inline: 20px;
+  }
+
   dl {
     display: grid;
     grid-template-columns: fit-content(30%) minmax(0, 1fr);
     gap: sys-var(space, sm) sys-var(space, md);
+    padding-block: 20px;
   }
+
   &__skeleton {
     display: grid;
     gap: sys-var(space, md);
     padding-block: sys-var(space, lg);
   }
+
   dd button {
     padding: 0;
     border: 0;
@@ -131,16 +143,36 @@ function close(): void {
     text-decoration: underline;
     cursor: pointer;
   }
+
   button:focus-visible {
     outline: 2px solid sys-var(color, border, strong);
     outline-offset: 2px;
   }
+
   dd {
     margin: 0;
     overflow-wrap: anywhere;
   }
+
   dt {
     color: sys-var(color, text, subtle);
   }
+}
+</style>
+
+<style lang="scss">
+/* Side panel styling - applied globally to override InkPopup */
+.info-base-side-panel {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  transform: none !important;
+  height: 100vh;
+  max-height: 100vh;
+  max-width: 90vw;
+  margin: 0;
+  border-left: 1px solid var(--sys-color-border-base);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
 }
 </style>

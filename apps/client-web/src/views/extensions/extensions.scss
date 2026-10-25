@@ -8,18 +8,35 @@
   padding: clamp(1rem, 4vw, 2rem);
   overflow-y: auto;
   box-sizing: border-box;
-  background: sys-var(color, surface, base);
 
-  &__page-header {
+  &__actions {
     display: flex;
     flex-wrap: wrap;
-    align-items: end;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: flex-end;
     gap: sys-var(space, md);
+    padding-block: sys-var(space, xs);
   }
 
   &__browse-link {
     white-space: nowrap;
+    padding: sys-var(space, xs) sys-var(space, sm);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease;
+    min-height: auto;
+    min-width: auto;
+    display: inline-flex;
+    align-items: center;
+
+    &:hover {
+      color: sys-var(color, text, base);
+    }
+
+    &:focus-visible {
+      outline: 2px solid sys-var(color, border, strong);
+      outline-offset: 2px;
+    }
   }
 
   &__install {
@@ -92,5 +109,25 @@
 
   &__error {
     color: sys-var(color, feedback, error);
+  }
+
+  &__error-details {
+    margin-top: sys-var(space, sm);
+    text-align: left;
+
+    summary {
+      cursor: pointer;
+      color: sys-var(color, text, subtle);
+      @include apply-font(body-sm);
+    }
+
+    code {
+      display: block;
+      margin-top: sys-var(space, xs);
+      padding: sys-var(space, sm);
+      background: sys-var(color, surface, subtle);
+      @include apply-font(label-md, $mono: true);
+      overflow-wrap: anywhere;
+    }
   }
 }

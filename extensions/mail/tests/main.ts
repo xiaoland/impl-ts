@@ -214,7 +214,7 @@ watch(
     const resolver = await ResolverCache.getResolver(target)
     const solvedContent = await resolver.getSolvedContent({ materializeMissing: false })
     const renderer = (
-      resolver.constructor as typeof resolver.constructor & {
+      resolver.constructor as {
         solvedContentRenderer: Parameters<typeof markRaw>[0]
       }
     ).solvedContentRenderer

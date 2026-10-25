@@ -4,7 +4,25 @@
     "correctness": "error"
   },
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "vue"],
-  "ignorePatterns": ["docs/_shared/**", "apps/client-webext/components.d.ts"],
+  "options": {
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "ignorePatterns": [
+    "docs/_shared/**",
+    "apps/client-webext/components.d.ts",
+    ".agents/skills/**",
+    "tasks/**"
+  ],
+  "overrides": [
+    {
+      "files": ["packages/core/src/database/database.generated.ts"],
+      "rules": {
+        "typescript/no-duplicate-type-constituents": "off",
+        "typescript/no-redundant-type-constituents": "off"
+      }
+    }
+  ],
   "rules": {
     "typescript/no-unused-vars": [
       "error",

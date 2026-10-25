@@ -6,63 +6,284 @@
   min-width: 0;
   padding: clamp(1rem, 4vw, 2rem);
   overflow-y: auto;
-  background: sys-var(color, surface, base);
   overflow-wrap: anywhere;
+
   &__back {
     align-self: flex-start;
     color: sys-var(color, text, base);
     @include apply-font(label-lg);
     text-decoration: underline;
   }
+
   h1 {
     @include apply-font(title-lg);
     margin: 0;
   }
+
   h2 {
     @include apply-font(title-sm);
     margin: 0;
   }
+
+  h3 {
+    @include apply-font(body-lg);
+    margin: 0;
+  }
+
   p {
     @include apply-font(body-sm);
     margin: 0;
   }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+  }
+
   &__metadata {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: sys-var(space, sm);
-    margin-top: sys-var(space, sm);
     @include apply-font(label-md, $mono: true);
     color: sys-var(color, text, subtle);
   }
+
+  &__type {
+    font-size: 0.875rem;
+  }
+
+  &__id {
+    font-size: 0.75rem;
+  }
+
+  &__tab-content {
+    min-height: 0;
+  }
+
+  &__tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, lg);
+  }
+
+  // Overview Grid
+  &__overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: sys-var(space, md);
+  }
+
+  &__overview-card {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, md);
+    padding: sys-var(space, md);
+    background: sys-var(color, surface, raised);
+    border: 1px solid sys-var(color, border, subtle);
+
+    h3 {
+      color: sys-var(color, text, base);
+      padding-bottom: sys-var(space, sm);
+      border-bottom: 1px solid sys-var(color, border, subtle);
+    }
+  }
+
+  &__overview-list {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+    margin: 0;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: sys-var(space, xs);
+    }
+
+    dt {
+      @include apply-font(body-sm);
+      color: sys-var(color, text, subtle);
+    }
+
+    dd {
+      margin: 0;
+      @include apply-font(body-sm);
+      color: sys-var(color, text, base);
+    }
+  }
+
+  // Stats
+  &__stat-row {
+    display: flex;
+    align-items: baseline;
+    gap: sys-var(space, sm);
+  }
+
+  &__stat-value {
+    @include apply-font(title-lg);
+    color: sys-var(color, text, base);
+    font-weight: 600;
+  }
+
+  &__stat-label {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  // Last Job
+  &__last-job {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+  }
+
+  &__last-job-status {
+    display: flex;
+    align-items: center;
+    gap: sys-var(space, sm);
+    @include apply-font(body-md);
+  }
+
+  &__last-job-time {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__last-job-link {
+    @include apply-font(body-sm);
+    color: sys-var(color, primary, base);
+    text-decoration: underline;
+  }
+
+  &__no-data {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  // Status Dots
+  &__status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: sys-var(color, text, subtle);
+
+    &--pending,
+    &--running {
+      background: sys-var(color, text, base);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    &--success,
+    &--completed {
+      background: sys-var(color, text, subtle);
+    }
+
+    &--failed,
+    &--error {
+      background: sys-var(color, feedback, error);
+    }
+  }
+
+  // Running Job
+  &__running-job {
+    display: flex;
+    align-items: center;
+    gap: sys-var(space, sm);
+    @include apply-font(body-sm);
+    color: sys-var(color, text, base);
+  }
+
+  // Cron Preview
+  &__cron-preview {
+    display: flex;
+    align-items: center;
+    gap: sys-var(space, sm);
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+
+    code {
+      padding: sys-var(space, xs) sys-var(space, sm);
+      background: sys-var(color, surface, base);
+      border-radius: sys-var(radius, sm);
+    }
+  }
+
+  // Cron List
+  &__cron-list {
+    display: flex;
+    flex-direction: column;
+    gap: sys-var(space, sm);
+  }
+
+  &__cron-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: sys-var(space, md);
+    padding: sys-var(space, sm) sys-var(space, md);
+    background: sys-var(color, surface, raised);
+    border: 1px solid sys-var(color, border, subtle);
+  }
+
+  &__cron-info {
+    display: flex;
+    align-items: center;
+    gap: sys-var(space, sm);
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__cron-human {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__cron-status {
+    padding: sys-var(space, xs) sys-var(space, sm);
+    @include apply-font(body-sm);
+    background: sys-var(color, surface, subtle);
+    color: sys-var(color, text, subtle);
+
+    &--enabled {
+      background: sys-var(color, surface, subtle);
+      color: sys-var(color, text, base);
+    }
+  }
+
+  &__cron-actions {
+    display: flex;
+    gap: sys-var(space, xs);
+  }
+
+  // Skeleton & Feedback
   &__skeleton {
     display: grid;
     gap: sys-var(space, md);
     padding-block: sys-var(space, md);
   }
-  &__content {
+
+  &__feedback {
     display: flex;
     flex-wrap: wrap;
-    gap: sys-var(space, xl);
-    min-width: 0;
+    gap: sys-var(space, sm);
+    align-items: center;
   }
-  &__details {
-    flex: 1 1 24rem;
-    min-width: 0;
+
+  // Config Section
+  &__config-section {
+    max-width: 48rem;
   }
-  &__activity {
-    flex: 1 1 24rem;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: sys-var(space, xl);
-  }
-  &__details,
-  &__schedules,
-  &__jobs {
+
+  // Schedules Section
+  &__schedules-section,
+  &__jobs-section {
     display: flex;
     flex-direction: column;
     gap: sys-var(space, md);
   }
+
   &__section-header {
     display: flex;
     flex-wrap: wrap;
@@ -70,50 +291,67 @@
     align-items: center;
     gap: sys-var(space, sm);
   }
-  &__schedule {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: sys-var(space, sm);
-    @include apply-font(body-sm);
-  }
+
   &__actions {
     display: flex;
     flex-wrap: wrap;
     gap: sys-var(space, sm);
     justify-content: flex-end;
   }
-  &__feedback {
-    display: flex;
-    flex-wrap: wrap;
-    gap: sys-var(space, sm);
-    align-items: center;
-  }
+
+  // Job List
   &__job-list {
     display: flex;
     flex-direction: column;
     gap: sys-var(space, sm);
   }
+
   &__job-link {
     color: inherit;
     text-decoration: none;
   }
+
   &__job-link:focus-visible {
     outline: 2px solid sys-var(color, border, strong);
     outline-offset: 2px;
   }
+
+  // Popup
   &__popup {
     width: 100%;
     max-width: 100%;
     min-width: 0;
     gap: sys-var(space, md);
+
     h2 {
       @include apply-font(title-sm);
       margin: 0;
     }
+
     p {
       @include apply-font(body-sm);
       margin: 0;
     }
+  }
+
+  &__popup-description {
+    @include apply-font(body-sm);
+    color: sys-var(color, text, subtle);
+  }
+
+  &__popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: sys-var(space, sm);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }

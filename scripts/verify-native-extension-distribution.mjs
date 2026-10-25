@@ -63,6 +63,7 @@ export function manifestClosure(manifest) {
   assert.ok(manifest.metaData && typeof manifest.metaData === 'object', 'metaData is required')
   assert.equal(manifest.metaData.publicPath, './', "metaData.publicPath must be './'")
 
+  /** @type {Set<string>} */
   const references = new Set([remoteEntryPath(manifest.metaData)])
   for (const assetPath of assetReferences(manifest.shared ?? [], 'shared')) {
     references.add(assetPath)
@@ -251,6 +252,7 @@ export async function verifyPublicModuleFederation({
 }
 
 export async function listSnapshotFiles(directory, prefix = '') {
+  /** @type {string[]} */
   const files = []
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const relativePath = prefix + entry.name

@@ -1,0 +1,88 @@
+.toast-host {
+  position: fixed;
+  inset-block-end: sys-var(space, lg);
+  inset-inline-end: sys-var(space, lg);
+  display: flex;
+  flex-direction: column;
+  gap: sys-var(space, sm);
+  z-index: 60;
+  pointer-events: none;
+  max-inline-size: min(28rem, calc(100vw - 2 * sys-var(space, lg)));
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: sys-var(space, sm);
+  padding: sys-var(space, sm) sys-var(space, md);
+  background: sys-var(color, surface, base);
+  border: 1px solid sys-var(color, border, subtle);
+  color: sys-var(color, text, base);
+  @include apply-font(body-md);
+  @include apply-elevation(low);
+  min-inline-size: 12rem;
+  animation: toast-enter 160ms ease-out;
+
+  &--error {
+    color: sys-var(color, feedback, error);
+    border-inline-start: 3px solid sys-var(color, feedback, error);
+  }
+
+  &--success {
+    border-inline-start: 3px solid sys-var(color, border, strong);
+  }
+
+  &--info {
+    border-inline-start: 3px solid sys-var(color, border, subtle);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid sys-var(color, border, strong);
+    outline-offset: 2px;
+  }
+
+  &__message {
+    flex: 1;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &__dismiss {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 2px;
+    cursor: pointer;
+    color: sys-var(color, text, subtle);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+
+    &:hover {
+      color: sys-var(color, text, base);
+    }
+
+    &:focus-visible {
+      outline: 2px solid sys-var(color, border, strong);
+      outline-offset: 2px;
+    }
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

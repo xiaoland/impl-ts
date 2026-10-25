@@ -7,6 +7,7 @@ const { t } = useI18n()
 
 <template>
   <main class="peers-view" :aria-label="t('peer.title')">
+    <h1 class="sr-only">{{ t('peer.title') }}</h1>
     <PeerList />
   </main>
 </template>

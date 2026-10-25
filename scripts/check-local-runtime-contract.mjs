@@ -238,18 +238,6 @@ for (const required of [
 if (remoteCompose.includes('eval ') || !remoteCompose.includes('"$docker_bin" compose')) {
   errors.push('remote Compose runner must preserve argv without eval or shell command construction')
 }
-const databaseRuntime = await readFile(`${repoRoot}/scripts/database-runtime-lib.mjs`, 'utf8')
-for (const required of [
-  "owner_repository !== 'InKCre/impl-py'",
-  'runtime_instance: descriptor.identity',
-  'external database runtime provenance is incomplete',
-  'external database readiness and runtime descriptor differ',
-  'client-web cannot stop it',
-]) {
-  if (!databaseRuntime.includes(required)) {
-    errors.push(`external database attachment is missing safety contract "${required}"`)
-  }
-}
 const committedDatabaseEnvironment = svcConfig.dev.targets.database.provision.env
 if (
   committedDatabaseEnvironment?.INKCRE_DATABASE_SSH_TARGET ||

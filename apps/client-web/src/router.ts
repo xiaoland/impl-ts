@@ -11,7 +11,11 @@ const router = createRouter({
       path: '/',
       name: 'InfoBaseListOverview',
       component: () => import('@/views/info-base/list/list.vue'),
-      meta: { title: 'Info Base' },
+      meta: { titleKey: 'sidePanel.home' },
+    },
+    {
+      path: '/info-base/list',
+      redirect: '/',
     },
     {
       path: '/info-base/list/blocks/:block/content',

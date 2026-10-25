@@ -35,7 +35,7 @@ function dockerFor(sourceRevision = source, contractRevision = revision) {
   }
 }
 
-test('consumer admission rejects unknown candidate origin, source and contract', () => {
+void test('consumer admission rejects unknown candidate origin, source and contract', () => {
   assert.equal(resolveConfiguredCoreRelease(dockerFor(), config).image, image)
   assert.throws(
     () => resolveConfiguredCoreRelease(dockerFor('d'.repeat(40)), config),

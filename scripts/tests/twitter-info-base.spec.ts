@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { createServer } from 'node:http'
 import { expect, test } from '@playwright/test'
 import { SignJWT } from 'jose'
 
@@ -13,6 +15,12 @@ function getArchiveBase(): URL {
 type BlockRow = { id: number; resolver: string; content: string }
 type RelationRow = { from_: number; to_: number; content: string }
 type LexicalJob = { id: number; status: string; state: Record<string, unknown> }
+type CorePeerRow = {
+  id: string
+  application_version: string
+  lease_expires_at: string
+  capabilities: Array<{ id: string; inbound: { parameters: { url?: string } } }>
+}
 
 const CORE_LEXICAL_MAINTAIN_JOB = 'core.feature_retrieval.lexical.maintain.v1'
 
@@ -33,31 +41,55 @@ async function databaseToken(): Promise<string> {
 async function databaseRows<Row>(path: string): Promise<Row[]> {
   const response = await fetch(new URL(path, postgrestUrl), {
     headers: { Authorization: `Bearer ${await databaseToken()}` },
+    signal: AbortSignal.timeout(15_000),
   })
   const body = await response.text()
   expect(response.ok, body).toBe(true)
   return JSON.parse(body) as Row[]
 }
 
-async function maintainLexicalIndex(page: import('@playwright/test').Page): Promise<LexicalJob> {
+async function archiveRequest(
+  page: import('@playwright/test').Page,
+  url: string,
+  data?: unknown
+): Promise<{ status: number; body: string }> {
+  return page.evaluate(
+    async ({ url, data }) => {
+      const response = await fetch(url, {
+        method: data === undefined ? 'GET' : 'POST',
+        headers: { 'x-tweet-db-client': 'x-monkey', 'Content-Type': 'application/json' },
+        body: data === undefined ? undefined : JSON.stringify(data),
+        signal: AbortSignal.timeout(15_000),
+      })
+      return { status: response.status, body: await response.text() }
+    },
+    { url, data }
+  )
+}
+
+async function maintainLexicalIndex(onCreated: (id: number) => Promise<void>): Promise<LexicalJob> {
   const authorization = { Authorization: `Bearer ${await databaseToken()}` }
-  const created = await page.request.post(new URL('jobs', coreBase()).toString(), {
-    headers: authorization,
-    data: {
+  const created = await fetch(new URL('jobs', coreBase()), {
+    method: 'POST',
+    headers: { ...authorization, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
       type: CORE_LEXICAL_MAINTAIN_JOB,
       parameters: { options: { max_records: 1000 } },
-    },
+    }),
+    signal: AbortSignal.timeout(15_000),
   })
   const createdBody = await created.text()
-  expect(created.status(), createdBody).toBe(201)
+  expect(created.status, createdBody).toBe(201)
   const initial = JSON.parse(createdBody) as LexicalJob
+  await onCreated(initial.id)
 
   const read = async (): Promise<LexicalJob> => {
-    const response = await page.request.get(new URL(`jobs/${initial.id}`, coreBase()).toString(), {
+    const response = await fetch(new URL(`jobs/${initial.id}`, coreBase()), {
       headers: authorization,
+      signal: AbortSignal.timeout(15_000),
     })
     const body = await response.text()
-    expect(response.ok(), body).toBe(true)
+    expect(response.ok, body).toBe(true)
     return JSON.parse(body) as LexicalJob
   }
   const deadline = Date.now() + 120_000
@@ -85,20 +117,226 @@ async function expectPostSearchResult(
   await expect(page.locator('.app-connection')).toBeHidden({ timeout: 30_000 })
   await search.fill(query)
   await page.getByRole('button', { name: 'Search', exact: true }).click()
+  await expect(page).toHaveURL((url) => url.searchParams.get('q') === query)
   const result = page
     .locator('.info-base-list-view__matches li')
-    .filter({ hasText: `#${blockId} · extensions.twitter.tweet.v2` })
+    // Excerpts vary with the query; the collapsed Details retain the exact Block identity.
+    .filter({
+      has: page.locator('details button').filter({ hasText: new RegExp(`^\\s*#${blockId}\\s+·`) }),
+    })
   await expect(result).toBeVisible({ timeout: 30_000 })
   return result
 }
 
+test.afterEach(async ({ page: _page }, testInfo) => {
+  const path = testInfo.outputPath('run.json')
+  let record: Record<string, unknown>
+  try {
+    record = JSON.parse(await readFile(path, 'utf8'))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return
+    throw error
+  }
+  await writeFile(path, `${JSON.stringify({ ...record, result: testInfo.status }, null, 2)}\n`)
+  await testInfo.attach('candidate and fixture record', { path, contentType: 'application/json' })
+})
+
+test('HTTP transport failures do not log signed credentials or browser Cookies', async ({
+  page,
+  context,
+}) => {
+  const sentinel = 'FAKE_ACCEPTANCE_CREDENTIAL_SENTINEL'
+  let sawAuthorization = false
+  let sawCookie = false
+  const server = createServer((request, response) => {
+    if (request.url === '/disconnect') {
+      sawAuthorization ||= request.headers.authorization === `Bearer ${sentinel}`
+      sawCookie ||= request.headers.cookie?.includes(sentinel) ?? false
+      request.socket.destroy()
+    } else response.end('<!doctype html><title>Acceptance transport check</title>')
+  })
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+  const address = server.address() as { port: number }
+  const base = `http://127.0.0.1:${address.port}`
+  try {
+    const signedError = await fetch(`${base}/disconnect`, {
+      headers: { Authorization: `Bearer ${sentinel}` },
+    }).catch((error: Error) => error)
+    if (!(signedError instanceof Error)) throw new Error('Expected the connection to fail')
+    expect(String(signedError)).not.toContain(sentinel)
+    await context.addCookies([{ name: 'acceptance', value: sentinel, url: base }])
+    await page.goto(base)
+    const cookieError = await archiveRequest(page, `${base}/disconnect`).catch(
+      (error: Error) => error
+    )
+    if (!(cookieError instanceof Error)) throw new Error('Expected the connection to fail')
+    expect(String(cookieError)).not.toContain(sentinel)
+    expect(sawAuthorization).toBe(true)
+    expect(sawCookie).toBe(true)
+  } finally {
+    server.closeAllConnections()
+    await new Promise<void>((resolve) => server.close(() => resolve()))
+  }
+})
+
 test('Core self-hosted connection writes native records that the real Twitter MF can read', async ({
   page,
-}) => {
-  test.setTimeout(180_000)
+  context,
+}, testInfo) => {
+  test.setTimeout(240_000)
+  for (const key of [
+    'INKCRE_E2E_CORE_URL',
+    'INKCRE_E2E_POSTGREST_URL',
+    'INKCRE_E2E_WEB_URL',
+    'INKCRE_E2E_JWT_SECRET',
+    'INKCRE_E2E_CORE_SOURCE_SHA',
+  ]) {
+    if (!process.env[key])
+      throw new Error(`${key} is required before this journey can write fixtures`)
+  }
+  if (!/^[a-f0-9]{40}$/.test(process.env.INKCRE_E2E_CORE_SOURCE_SHA!)) {
+    throw new Error(
+      'INKCRE_E2E_CORE_SOURCE_SHA must identify the Core candidate reported by its deployment owner'
+    )
+  }
+  for (const value of [coreUrl, postgrestUrl, process.env.INKCRE_E2E_WEB_URL!]) {
+    const url = new URL(value)
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash
+    ) {
+      throw new Error(
+        'Acceptance endpoints must be HTTP(S) URLs without embedded credentials, query or fragment'
+      )
+    }
+  }
   const archiveBase = getArchiveBase()
   const webOrigin = new URL(process.env.INKCRE_E2E_WEB_URL!).origin
   const stamp = `${Date.now()}`
+  const record: Record<string, unknown> = {
+    started_at: new Date().toISOString(),
+    core_url: coreUrl,
+    postgrest_url: postgrestUrl,
+    web_url: process.env.INKCRE_E2E_WEB_URL,
+    declared_core_source_revision: process.env.INKCRE_E2E_CORE_SOURCE_SHA,
+    fixture_stamp: stamp,
+    cleanup:
+      'The isolated info-base owner removes this run data; this script does not delete shared rows.',
+  }
+  await mkdir(testInfo.outputDir, { recursive: true })
+  async function recordPhase(phase: string, observations: Record<string, unknown> = {}) {
+    Object.assign(record, observations, { phase })
+    await writeFile(testInfo.outputPath('run.json'), `${JSON.stringify(record, null, 2)}\n`)
+  }
+  await recordPhase('preflight')
+  const ready = await fetch(new URL('readyz', coreBase()), { signal: AbortSignal.timeout(15_000) })
+  if (!ready.ok) throw new Error(`Core readiness returned HTTP ${ready.status}`)
+  const readiness = await ready.json()
+  expect(readiness.database.status, 'Core must report an admitted database').toBe('ok')
+  const candidateResponse = await fetch(new URL('preview-candidate.json', webOrigin), {
+    signal: AbortSignal.timeout(15_000),
+  })
+  if (!candidateResponse.ok)
+    throw new Error('Web candidate metadata is required; select a prepared Preview snapshot')
+  const candidate = (await candidateResponse.json()) as {
+    source_revision: string
+    build_id: string
+    distributions: Array<{ manifest: string }>
+  }
+  const twitterCandidate = candidate.distributions?.find((item) =>
+    item.manifest.startsWith('/extensions/inkcre/twitter/')
+  )
+  if (!/^[a-f0-9]{40}$/.test(candidate.source_revision) || !twitterCandidate) {
+    throw new Error('Web snapshot must identify its source and Twitter MF distribution')
+  }
+  let corePeers: CorePeerRow[] = []
+  await expect
+    .poll(
+      async () => {
+        const peers = await databaseRows<CorePeerRow>(
+          'peers?select=id,application_version,lease_expires_at,capabilities'
+        )
+        corePeers = peers.filter(
+          (peer) =>
+            Date.parse(peer.lease_expires_at) > Date.now() &&
+            peer.capabilities.some(
+              (capability) =>
+                capability.id === 'core.extension.management.v2' &&
+                capability.inbound?.parameters?.url ===
+                  new URL('extension-management/v2', coreBase()).href
+            )
+        )
+        return corePeers.length
+      },
+      {
+        timeout: 30_000,
+        message: 'PostgREST must expose the live Core Peer selected for this journey',
+      }
+    )
+    .toBe(1)
+  const nativeResponse = await fetch(new URL('extension-management/v2', coreBase()), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${await databaseToken()}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action: 'status', extension: 'inkcre/twitter' }),
+    signal: AbortSignal.timeout(15_000),
+  })
+  if (!nativeResponse.ok)
+    throw new Error(`Native Distribution status returned HTTP ${nativeResponse.status}`)
+  const nativeStatus = await nativeResponse.json()
+  const nativeRows = nativeStatus.extensions.filter(
+    (row: { name: string }) => row.name === 'inkcre/twitter'
+  )
+  const nativeDistributions = nativeRows.map(
+    (row: {
+      name: string
+      distribution: string
+      version: string
+      loaded_version: string | null
+      enabled: boolean
+      running: boolean
+      restart_required: boolean
+      operation: string | null
+    }) => ({
+      peer_id: nativeStatus.peer_id,
+      name: row.name,
+      distribution: row.distribution,
+      version: row.version,
+      loaded_version: row.loaded_version,
+      enabled: row.enabled,
+      running: row.running,
+      restart_required: row.restart_required,
+      operation: row.operation,
+    })
+  )
+  await recordPhase('preflight', { native_distributions: nativeDistributions })
+  expect(nativeStatus.peer_id, 'Native status must belong to the observed Core Peer').toBe(
+    corePeers[0].id
+  )
+  expect(nativeDistributions, 'The owner must select and enable the Python Distribution').toEqual([
+    {
+      peer_id: corePeers[0].id,
+      name: 'inkcre/twitter',
+      distribution: 'python',
+      version: expect.stringMatching(/\S/),
+      loaded_version: nativeDistributions[0]?.version,
+      enabled: true,
+      running: true,
+      restart_required: false,
+      operation: null,
+    },
+  ])
+  await recordPhase('connecting', {
+    core_peer: { id: corePeers[0].id, application_version: corePeers[0].application_version },
+    database_contract: readiness.database.contract,
+    migration: readiness.database.migration,
+    web_candidate: candidate,
+  })
   const userId = `${stamp}01`
   const postId = `${stamp}02`
   const quoteId = `${stamp}03`
@@ -124,7 +362,7 @@ test('Core self-hosted connection writes native records that the real Twitter MF
     encodeURIComponent(jwtSecret),
     JSON.stringify(jwtSecret).slice(1, -1),
   ]
-  page.on('request', (request) => {
+  context.on('request', (request) => {
     // Fulfilled media routes may never deliver extra headers; audit these synchronously.
     const payload = [request.url(), JSON.stringify(request.headers()), request.postData() ?? '']
     secretTransmitted ||= payload.some((value) =>
@@ -163,11 +401,9 @@ test('Core self-hosted connection writes native records that the real Twitter MF
   expect(connectHeaders.origin).toBe(archiveBase.origin)
   expect(Boolean(connectHeaders.authorization?.startsWith('Bearer '))).toBe(true)
   await expect(page.getByText('Connected', { exact: true })).toBeVisible()
-  const session = await page.request.get(new URL('api/v1/session', archiveBase).toString(), {
-    headers: { 'x-tweet-db-client': 'x-monkey' },
-  })
-  expect(session.ok()).toBe(true)
-  expect(((await session.json()) as { authenticated: boolean }).authenticated).toBe(true)
+  const session = await archiveRequest(page, new URL('api/v1/session', archiveBase).toString())
+  expect(session.status, session.body).toBe(200)
+  expect((JSON.parse(session.body) as { authenticated: boolean }).authenticated).toBe(true)
   const sessionCookie = (
     await page.context().cookies(new URL('account', archiveBase).toString())
   ).find((cookie) => cookie.name === 'inkcre_twitter_archive')
@@ -193,9 +429,22 @@ test('Core self-hosted connection writes native records that the real Twitter MF
     mask: [secretInput],
   })
 
-  const submit = await page.request.post(new URL('api/v1/archive/submit', archiveBase).toString(), {
-    headers: { 'x-tweet-db-client': 'x-monkey' },
-    data: {
+  await recordPhase('submitting', {
+    native_ids: [
+      userId,
+      postId,
+      quoteId,
+      replyId,
+      mediaId,
+      failedMediaId,
+      videoId,
+      alternateMediaId,
+    ],
+  })
+  const submit = await archiveRequest(
+    page,
+    new URL('api/v1/archive/submit', archiveBase).toString(),
+    {
       users: [
         {
           id: userId,
@@ -266,25 +515,28 @@ test('Core self-hosted connection writes native records that the real Twitter MF
           alt: 'Alternate CDN image metadata',
         },
       ],
-    },
-  })
-  const submitBody = await submit.text()
-  expect(submit.status(), submitBody).toBe(200)
-  const submitted = JSON.parse(submitBody) as {
+    }
+  )
+  expect(submit.status, submit.body).toBe(200)
+  const submitted = JSON.parse(submit.body) as {
     summary: { accepted: number; failed: number; total: number }
   }
   expect(submitted.summary).toMatchObject({ accepted: 8, failed: 0, total: 8 })
+  await recordPhase('submitted', {
+    submit_summary: submitted.summary,
+  })
 
-  const query = await page.request.post(new URL('api/v1/archive/query', archiveBase).toString(), {
-    headers: { 'x-tweet-db-client': 'x-monkey' },
-    data: {
+  const query = await archiveRequest(
+    page,
+    new URL('api/v1/archive/query', archiveBase).toString(),
+    {
       users: [userId],
       posts: [postId],
       media: [mediaId, failedMediaId, videoId, alternateMediaId],
-    },
-  })
-  expect(query.status()).toBe(200)
-  const queried = (await query.json()) as {
+    }
+  )
+  expect(query.status, query.body).toBe(200)
+  const queried = JSON.parse(query.body) as {
     posts: Array<{ id: string; status: string; data?: unknown }>
   }
   expect(queried.posts).toEqual([
@@ -316,8 +568,12 @@ test('Core self-hosted connection writes native records that the real Twitter MF
     { webOrigin, postgrestUrl, jwtSecret, peerId }
   )
   const twitterRemoteEntries: import('@playwright/test').Response[] = []
-  page.on('response', (response) => {
+  const moduleOrigins = new Set<string>()
+  context.on('response', (response) => {
     const url = new URL(response.url())
+    if (url.pathname.includes('/extensions/inkcre/twitter/')) {
+      moduleOrigins.add(url.origin)
+    }
     if (
       url.pathname.includes('/extensions/inkcre/twitter/') &&
       url.pathname.endsWith('/remoteEntry.js')
@@ -361,6 +617,11 @@ test('Core self-hosted connection writes native records that the real Twitter MF
   const remoteEntry = twitterRemoteEntries.at(-1)!
   expect(remoteEntry.ok()).toBe(true)
   expect(new URL(remoteEntry.url()).origin).toBe(webOrigin)
+  await recordPhase('reading', {
+    web_peer_id: peerId,
+    registry_origin: webOrigin,
+    remote_entry_url: remoteEntry.url(),
+  })
   const posts = await databaseRows<BlockRow>(
     'blocks?select=id,resolver,content&resolver=eq.extensions.twitter.tweet.v2&order=id.desc&limit=100'
   )
@@ -557,9 +818,22 @@ test('Core self-hosted connection writes native records that the real Twitter MF
     )
   )
 
-  const indexJob = await maintainLexicalIndex(page)
+  const indexJob = await maintainLexicalIndex((id) =>
+    recordPhase('indexing', { lexical_job_id: id })
+  )
+  await recordPhase('indexed', {
+    lexical_job_id: indexJob.id,
+    post_block_id: postBlock!.id,
+    media_block_ids: [
+      mediaBlock!.id,
+      failedMediaBlock!.id,
+      videoBlock!.id,
+      alternateMediaBlock!.id,
+    ],
+  })
   expect(indexJob.state).toMatchObject({ failed: 0, unavailable: 0 })
-  for (const query of [postId, `acceptance_${stamp}`, 'Rich text survives with its author']) {
+  await recordPhase('searching')
+  for (const query of [postId, `acceptance_${stamp}`]) {
     await expectPostSearchResult(page, query, postBlock!.id)
   }
   const bodySearch = await expectPostSearchResult(
@@ -569,8 +843,9 @@ test('Core self-hosted connection writes native records that the real Twitter MF
   )
   await bodySearch.locator('.info-base-list-view__match').click()
   await expect(page).toHaveURL((url) => url.pathname === `/info-base/list/blocks/${postBlock!.id}`)
-  await expect(page.locator('.block-inspector-popup')).toContainText(`#${postBlock!.id}`)
-  await page.locator('.block-inspector-popup').getByRole('button', { name: 'View content' }).click()
+  const inspector = page.getByRole('dialog', { name: 'Block Inspector', exact: true })
+  await expect(inspector).toContainText(`#${postBlock!.id}`)
+  await inspector.getByRole('button', { name: 'View content', exact: true }).click()
   await expect(page.locator('.solved-content-popup')).toContainText(
     'Rich text survives with its author and context.'
   )
@@ -579,4 +854,20 @@ test('Core self-hosted connection writes native records that the real Twitter MF
     path: 'test-results/twitter-acceptance/twitter-x-monkey-final.png',
     fullPage: true,
   })
+  await recordPhase('reopening')
+  const reopened = await context.newPage()
+  await page.close()
+  await reopened.goto(new URL(`/info-base/graph/blocks/${postBlock!.id}/content`, webOrigin).href)
+  await expect(reopened.locator('.solved-content-popup')).toContainText(
+    'Rich text survives with its author and context.',
+    { timeout: 30_000 }
+  )
+  await expect(reopened.locator('.solved-content-popup')).toContainText('Archive Acceptance Author')
+  await recordPhase('reopened', {
+    module_origins: [...moduleOrigins].sort(),
+    reopened_url: reopened.url(),
+  })
+  expect([...moduleOrigins]).toEqual([webOrigin])
+  expect(secretTransmitted, 'Application requests must not transmit JWT_SECRET.').toBe(false)
+  await reopened.screenshot({ path: testInfo.outputPath('reopened.png'), fullPage: true })
 })

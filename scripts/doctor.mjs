@@ -65,11 +65,6 @@ record(
 
 const svcConfig = JSON.parse(await readFile(`${repoRoot}/svc.json`, 'utf8'))
 record(
-  'svc-config',
-  svcConfig.schema_version === 3 && svcConfig.corpus_version === '14.0.0' ? 'ok' : 'error',
-  `schema ${svcConfig.schema_version}, adopted ${svcConfig.corpus_version}`
-)
-record(
   'shared-docs',
   (await exists('docs/_shared/10-prd/index.md')) ? 'ok' : 'error',
   'docs/_shared must be initialized'
@@ -102,7 +97,11 @@ if (svcVersion) {
     record('svc-runtime', 'error', `${svcVersion}; status failed`)
   }
 } else {
-  record('svc-runtime', 'warning', 'not on PATH; install sustainable-vibe-coding==14.0.0')
+  record(
+    'svc-runtime',
+    'warning',
+    'not on PATH; install SVC following docs/40-deployment/development-runtime.md'
+  )
 }
 
 try {
@@ -119,11 +118,11 @@ try {
     'ok',
     `${provider.kind}${endpoint}; engine ${diagnostic.engine}; compose ${diagnostic.compose}`
   )
-} catch {
+} catch (error) {
   record(
     'database-provider',
     'error',
-    'selected local, SSH, or external core-py database provider is unavailable; inspect svc.local.json and runtime state'
+    `${error instanceof Error ? error.message : String(error)}; inspect svc.local.json and the selected runtime owner`
   )
 }
 

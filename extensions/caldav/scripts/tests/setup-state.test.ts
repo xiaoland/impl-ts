@@ -26,7 +26,7 @@ const running: ExtensionRuntimeStatus = {
   error: null,
 }
 
-test('a Python nullable Registry override uses shared configuration without guessing a process default', () => {
+void test('a Python nullable Registry override uses shared configuration without guessing a process default', () => {
   const shared = {
     schema: 'extension.registry.config.v1',
     value: { extension_registry_url: 'https://deployment.example' },
@@ -42,7 +42,7 @@ test('a Python nullable Registry override uses shared configuration without gues
   assert.throws(() => configuredRegistry(123, shared), RegistryConfigurationError)
 })
 
-test('readiness requires the selected version to be actually running', () => {
+void test('readiness requires the selected version to be actually running', () => {
   assert.equal(runtimeReady(running), true)
   for (const change of [
     { enabled: false },
@@ -58,7 +58,7 @@ test('readiness requires the selected version to be actually running', () => {
   assert.equal(runtimeReady(null), false)
 })
 
-test('a completed failure is not presented as installation still in progress', () => {
+void test('a completed failure is not presented as installation still in progress', () => {
   assert.equal(waitingForRuntime({ ...running, operation: 'failed', error: 'failed' }), false)
   assert.equal(waitingForRuntime({ ...running, operation: 'applying' }), true)
   const failed = { ...running, operation: 'failed', restart_required: true }
@@ -68,7 +68,7 @@ test('a completed failure is not presented as installation still in progress', (
   assert.equal(waitingForRuntime({ ...running, version: null, operation: 'downloading' }), true)
 })
 
-test('password preparation matches Python character limits and preserves existing values', () => {
+void test('password preparation matches Python character limits and preserves existing values', () => {
   const extension = { name: 'inkcre/caldav', nickname: 'CalDAV', config: {} }
   assert.equal(savedPassword(extension), null)
   const existing = '日'.repeat(32)

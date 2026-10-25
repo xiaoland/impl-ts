@@ -269,6 +269,8 @@ async function applyWebPeerParticipation(runtime: WebPeerRuntime, meta: MetaConf
     if (!ownsWebPeerConnection(runtime, meta)) return
     await shutdownTelemetry()
     if (!ownsWebPeerConnection(runtime, meta)) return
+    // Background participation does not own the local extension Host: keep it
+    // running so resolver identities and reader state survive participation toggles.
     webPeerConnectionState.value = 'disabled'
     return
   }

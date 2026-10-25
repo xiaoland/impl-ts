@@ -10,6 +10,8 @@ export default defineConfig({
     'i-mdi-chevron-right',
     'i-mdi-chevron-left',
     'i-mdi-chevron-down',
+    'i-mdi-close',
+    'i-mdi-magnify',
     'animate-spin',
   ],
 })

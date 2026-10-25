@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+  },
+  "files": ["types/ui-web.d.ts"]
+}
