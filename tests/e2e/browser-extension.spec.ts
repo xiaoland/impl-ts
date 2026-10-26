@@ -13,6 +13,55 @@ import {
   WebPeerRuntime,
 } from '../../packages/core/dist/index.js'
 
+test('Discourse imports retain each author, short replies, links and code', async ({
+  context,
+  page,
+  extensionId,
+}) => {
+  await page.goto(`chrome-extension://${extensionId}/parser.html`)
+  const worker = context.serviceWorkers()[0]!
+  const html = `<!doctype html><html><head><meta name="generator" content="Discourse 2026.10"><title>Packaging discussion</title></head><body>
+    <nav>Account settings and navigation</nav>
+    <div class="crawler-post" id="post_1"><div class="crawler-post-meta"><span class="creator">Alice</span><time datetime="2025-01-20T03:10:17Z"></time></div><div class="post"><p>I have experience packaging software and would like to contribute while learning this language. Which existing community projects could use that experience?</p><pre><code>if ready:\n    contribute()\n</code></pre></div></div>
+    <div class="crawler-post" id="post_2"><div class="crawler-post-meta"><span class="creator">Bob</span><time datetime="2025-02-07T16:15:12Z"></time></div><div class="post"><p>Try the <a href="/c/packaging/14">Packaging forum</a>.</p><blockquote><div class="crawler-post" id="post_99"><div class="post">Quoted text is not another post.</div></div></blockquote></div></div>
+    <div class="crawler-post" id="post_3"><div class="crawler-post-meta"><span class="creator">Alice</span></div><div class="post"><p>Thanks!</p></div></div>
+    <div class="crawler-post" id="post_4"><div class="post"><pre><code>    keep_indent()\n</code></pre></div></div>
+    <div class="crawler-post" id="post_5"><div class="post"><blockquote><div class="crawler-post-meta"><span class="creator">Quoted author</span><time datetime="2020-01-01">old date</time><span itemprop="position">99</span></div></blockquote><p>A quoted author is not the author of this post.</p></div></div>
+    <footer>Privacy policy</footer></body></html>`
+  const parse = (value: string) =>
+    worker.evaluate(
+      async (input) =>
+        (globalThis as any).chrome.runtime.sendMessage({
+          type: 'collection-parse-html',
+          html: input,
+          url: 'https://forum.example/t/packaging/1',
+        }),
+      value
+    )
+  const result = await parse(html)
+  expect(result.text).toContain('#1 · Alice · 2025-01-20T03:10:17Z')
+  expect(result.text).toContain('#2 · Bob · 2025-02-07T16:15:12Z')
+  expect(result.text).toContain('#3 · Alice\n\nThanks!')
+  expect(result.text).toContain('Packaging forum (https://forum.example/c/packaging/14)')
+  expect(result.text).toContain('if ready:\n    contribute()\n')
+  expect(result.text).toContain('#4\n\n    keep_indent()')
+  expect(result.text).toContain('#5\n\n')
+  expect(result.text).not.toContain('#5 · Quoted author')
+  expect(result.text).toContain('Quoted text is not another post.')
+  expect(result.text).not.toContain('#99')
+  expect(result.text).not.toContain('Account settings')
+  expect(result.text).not.toContain('Privacy policy')
+  const repeated = html.replace(
+    '</body>',
+    html.match(/<div class="crawler-post" id="post_3">.*?<\/div><\/div>/)![0] + '</body>'
+  )
+  expect((await parse(repeated)).text).toBe(result.text)
+  const ordinary = await parse(
+    html.replace('content="Discourse 2026.10"', 'content="Other software"')
+  )
+  expect(ordinary.text).not.toContain('#1 · Alice')
+})
+
 test('material collection uses existing graph CRUD and byte storage without a web RPC', async () => {
   test.skip(!process.env.INKCRE_E2E_WEBEXT_PGREST, 'Requires a disposable database.')
   const token = await new SignJWT({ role: 'authenticated' })

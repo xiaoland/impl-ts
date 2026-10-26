@@ -5,6 +5,7 @@ import {
   MATERIAL_BYTE_LIMIT,
 } from '@inkcre/web-collection'
 import { z } from 'zod'
+import { discourseText } from './discourse'
 
 export const PageCaptureSchema = z.object({
   material: MaterialMetadataSchema,
@@ -135,13 +136,15 @@ export function capturePage(selectionOnly: boolean): PageCapture {
     if (body) output.body.replaceWith(body)
     for (const meta of document.querySelectorAll('meta[name], meta[property]')) {
       const name = meta.getAttribute('name') ?? meta.getAttribute('property') ?? ''
-      if (/^(description|author|keywords|date|article:|og:|twitter:)/i.test(name))
+      if (/^(description|author|keywords|date|generator|article:|og:|twitter:)/i.test(name))
         output.head.append(meta.cloneNode(true))
     }
-    const readable = text
-      .join('')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim()
+    const readable =
+      discourseText(output, document.URL) ??
+      text
+        .join('')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
     if (!readable) throw new Error('没有取得可读正文；可改为仅保存链接。')
     parts = [
       textPart('html', `<!doctype html>\n${output.documentElement.outerHTML}`),

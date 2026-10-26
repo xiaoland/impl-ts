@@ -50,4 +50,8 @@ Firefox 通过 `action.theme_icons` 使用 `toolbar/*.png` 原色透明版与 `t
 
 ## Hister 参考
 
+Discourse 页面按已经取得的帖子结构生成可读正文，保留来源明确给出的帖号、作者、时间和正文中的链接与代码。
+现场采集与公开 URL 导入共用这段解析；完整 HTML 材料沿用现有保存方式。缺少必要结构时沿用原有通用文本路径，
+不补抓未加载帖子、不推断回复目标，也不生成模型摘要。该行为受 Hister 的来源专用 extractor 思路启发，独立实现。
+
 采集与导入设计参考 [Hister](https://github.com/asciimoo/hister) 在已渲染页面、可见性/退避调度和已有资料迁移上的工作，感谢 Adam Tauber（asciimoo）及贡献者。研究固定于 `f1fff29683c8c8006a35d3387384d9b1e123cebe`（2026-10-21）。本实现没有复制其代码或素材；Hister 的 AGPL-3.0-or-later 许可与本项目许可分别适用，致谢不替代未来复用时的许可核对。
