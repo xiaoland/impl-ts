@@ -1,5 +1,17 @@
 # @inkcre/client-web
 
+## 0.2.0
+
+### Minor Changes
+
+- 0daff89: 搜索页可显式选择现有语义检索，预览并打开 Block 或 Relation；阅读和刷新保留查询与检索方式，不改变关键词检索、排名或 Peer 协议。
+
+### Patch Changes
+
+- 02ef335: 支持在 Web 与浏览器扩展保存、切换命名连接，并保留连接身份和上次选择；Web 备份包含完整连接列表。
+- Updated dependencies [02ef335]
+  - @inkcre/core@0.4.2
+
 ## 0.1.6
 
 ### Patch Changes

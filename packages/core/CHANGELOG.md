@@ -1,5 +1,11 @@
 # @inkcre/core
 
+## 0.4.2
+
+### Patch Changes
+
+- 02ef335: 支持在 Web 与浏览器扩展保存、切换命名连接，并保留连接身份和上次选择；Web 备份包含完整连接列表。
+
 ## 0.4.1
 
 ### Patch Changes
